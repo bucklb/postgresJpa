@@ -28,6 +28,11 @@ public class HomeController {
         httpServletResponse.setStatus(REDIRECT_CDE);
     }
 
+    // To fit in, continue the ping-pong convention
+    @GetMapping("/ping")
+    public String getPing() {
+        return "pong";
+    }
 
 
 }
