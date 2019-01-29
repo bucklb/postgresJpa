@@ -10,24 +10,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
+@RequestMapping("/questions")
 @RestController
 public class QuestionController {
 
     @Autowired
     private QuestionRepository questionRepository;
 
-    @GetMapping("/questions")
+    @GetMapping("")
     public Page<Question> getQuestions(Pageable pageable) {
         return questionRepository.findAll(pageable);
     }
 
 
-    @PostMapping("/questions")
+    @PostMapping("")
     public Question createQuestion(@Valid @RequestBody Question question) {
         return questionRepository.save(question);
     }
 
-    @PutMapping("/questions/{questionId}")
+    @PutMapping("/{questionId}")
     public Question updateQuestion(@PathVariable Long questionId,
                                    @Valid @RequestBody Question questionRequest) {
         return questionRepository.findById(questionId)
@@ -39,7 +40,7 @@ public class QuestionController {
     }
 
 
-    @DeleteMapping("/questions/{questionId}")
+    @DeleteMapping("/{questionId}")
     public ResponseEntity<?> deleteQuestion(@PathVariable Long questionId) {
         return questionRepository.findById(questionId)
                 .map(question -> {
