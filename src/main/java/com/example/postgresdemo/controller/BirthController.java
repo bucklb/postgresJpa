@@ -26,12 +26,12 @@ public class BirthController implements BirthCasesApi {
         // Try creating a BirthCaseEntity and mapping to BirthCase domain object
         Optional<BirthCaseEntity> optionalBirthCaseEntity = birthRepository.findById( birthCaseId );
         BirthCaseEntity bce = optionalBirthCaseEntity.get();
-        System.out.println(bce.getBirthday() + " " + bce.getName());
+        System.out.println(bce.getDateOfBirth() + " " + bce.getName());
 
         // While I work out why dateofbirth is causing issues, do a rather more brutal mapping job
         BirthCase bc = new BirthCase();
         bc.setName(bce.getName());
-        bc.setDateOfBirth(bce.getBirthday());
+        bc.setDateOfBirth(bce.getDateOfBirth());
 
         return new ResponseEntity<BirthCase>(bc,HttpStatus.OK);
     }

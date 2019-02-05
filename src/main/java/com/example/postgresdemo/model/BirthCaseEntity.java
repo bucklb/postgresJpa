@@ -21,8 +21,8 @@ public class BirthCaseEntity {
 
     @Column
     private String name = null;
-//    @Column(columnDefinition = "")
-    private String birthday = null;
+    @Column(name = "birthday", columnDefinition = "VARCHAR(40)")
+    private String dateOfBirth = null;
 
     public void setId(Long id) {
         this.id = id;
@@ -38,11 +38,11 @@ public class BirthCaseEntity {
         return name;
     }
 
-    public void   setBirthday(String birthday) {
-        this.birthday = birthday;
+    public void   setDateOfBirth(String birthday) {
+        this.dateOfBirth = birthday;
     }
-    public String getBirthday() {
-        return birthday;
+    public String getDateOfBirth() {
+        return dateOfBirth;
     }
 
 
