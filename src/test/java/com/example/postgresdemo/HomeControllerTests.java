@@ -20,8 +20,11 @@ public class HomeControllerTests {
     @Test
     public void basicPingTest() {
 
+        // Create the test controller outside the "given" command such that we can inject a mocked service/repo
+        HomeController hc = new HomeController();
+
         given().
-                standaloneSetup(new HomeController()).
+                standaloneSetup(hc).
                 when().
                 get("/ping").
                 then().

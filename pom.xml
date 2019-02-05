@@ -110,6 +110,12 @@
 		</dependency>
 
 
+		<!-- Pull in the birth stuff -->
+		<dependency>
+			<groupId>uk.gov.dwp.integration.api</groupId>
+			<artifactId>customer-verification-api</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>
 
 	</dependencies>
 
