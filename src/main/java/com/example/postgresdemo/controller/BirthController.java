@@ -9,9 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import uk.gov.dwp.integration.api.customerverification.controller.BirthCasesApi;
-import uk.gov.dwp.integration.api.customerverification.domain.BirthCase;
-import uk.gov.dwp.integration.api.customerverification.domain.BirthCaseEnrichment;
+import uk.gov.dwp.tuo.gen.controller.BirthCasesApi;
+import uk.gov.dwp.tuo.gen.domain.BirthCase;
+//import uk.gov.dwp.tuo.gen.domain.BirthCaseEnrichment;
 
 import javax.validation.Valid;
 import java.io.IOException;

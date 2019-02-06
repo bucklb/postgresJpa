@@ -27,6 +27,7 @@
 		<swagger-maven-plugin.version>3.1.6</swagger-maven-plugin.version>
 		<swagger.file>src/main/resources/birthCase.yml</swagger.file>
 
+		<swagger-codegen-package>uk.gov.dwp.tuo.gen</swagger-codegen-package>
 
 
 
@@ -116,15 +117,6 @@
 			<version>3.3.0</version>
 			<scope>test</scope>
 		</dependency>
-
-
-		<!-- Pull in the birth stuff -->
-		<!--<dependency>-->
-			<!--<groupId>uk.gov.dwp.integration.api</groupId>-->
-			<!--<artifactId>customer-verification-api</artifactId>-->
-			<!--<version>1.0.1-SNAPSHOT</version>-->
-		<!--</dependency>-->
-
 	</dependencies>
 
 	<build>
@@ -178,15 +170,18 @@
 						<configuration>
 							<inputSpec>${swagger.file}</inputSpec>
 							<ignoreFileOverride>${project.basedir}/.swagger-codegen-ignore</ignoreFileOverride>
+
 							<generateApis>true</generateApis>
 							<generateApiDocumentation>true</generateApiDocumentation>
 							<generateApiTests>true</generateApiTests>
+							<apiPackage>${swagger-codegen-package}.controller</apiPackage>
+
 							<generateModels>true</generateModels>
 							<generateModelDocumentation>true</generateModelDocumentation>
 							<generateModelTests>true</generateModelTests>
+							<modelPackage>${swagger-codegen-package}.domain</modelPackage>
+
 							<generateSupportingFiles>false</generateSupportingFiles>
-							<apiPackage>uk.gov.dwp.integration.api.customerverification.controller</apiPackage>
-							<modelPackage>uk.gov.dwp.integration.api.customerverification.domain</modelPackage>
 							<language>spring</language>
 							<output>target/generated-sources</output>
 							<templateDirectory>src/main/resources/templates</templateDirectory>
@@ -206,11 +201,6 @@
 					</execution>
 				</executions>
 			</plugin>
-
-
-
-
-
 		</plugins>
 	</build>
 
