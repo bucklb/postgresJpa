@@ -22,6 +22,14 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
+
+		<swagger-codegen-version>2.3.1</swagger-codegen-version>
+		<swagger-maven-plugin.version>3.1.6</swagger-maven-plugin.version>
+		<swagger.file>src/main/resources/birthCase.yml</swagger.file>
+
+
+
+
 	</properties>
 
 	<dependencies>
@@ -111,11 +119,11 @@
 
 
 		<!-- Pull in the birth stuff -->
-		<dependency>
-			<groupId>uk.gov.dwp.integration.api</groupId>
-			<artifactId>customer-verification-api</artifactId>
-			<version>1.0.1-SNAPSHOT</version>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>uk.gov.dwp.integration.api</groupId>-->
+			<!--<artifactId>customer-verification-api</artifactId>-->
+			<!--<version>1.0.1-SNAPSHOT</version>-->
+		<!--</dependency>-->
 
 	</dependencies>
 
@@ -154,6 +162,54 @@
 					</execution>
 				</executions>
 			</plugin>
+
+
+
+			<plugin>
+				<!-- lift and shift from customer-verification-api-->
+				<groupId>io.swagger</groupId>
+				<artifactId>swagger-codegen-maven-plugin</artifactId>
+				<version>${swagger-codegen-version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${swagger.file}</inputSpec>
+							<ignoreFileOverride>${project.basedir}/.swagger-codegen-ignore</ignoreFileOverride>
+							<generateApis>true</generateApis>
+							<generateApiDocumentation>true</generateApiDocumentation>
+							<generateApiTests>true</generateApiTests>
+							<generateModels>true</generateModels>
+							<generateModelDocumentation>true</generateModelDocumentation>
+							<generateModelTests>true</generateModelTests>
+							<generateSupportingFiles>false</generateSupportingFiles>
+							<apiPackage>uk.gov.dwp.integration.api.customerverification.controller</apiPackage>
+							<modelPackage>uk.gov.dwp.integration.api.customerverification.domain</modelPackage>
+							<language>spring</language>
+							<output>target/generated-sources</output>
+							<templateDirectory>src/main/resources/templates</templateDirectory>
+							<!-- pass any necessary config options -->
+							<configOptions>
+								<dateLibrary>joda</dateLibrary>
+								<java8>true</java8>
+								<useBeanValidation>true</useBeanValidation>
+								<performBeanValidation>true</performBeanValidation>
+								<swaggerDocketConfig>false</swaggerDocketConfig>
+								<interfaceOnly>true</interfaceOnly>
+							</configOptions>
+							<configHelp>false</configHelp>
+							<!-- override the default library to jersey2 -->
+							<library>spring-boot</library>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
+
+
 
 		</plugins>
 	</build>

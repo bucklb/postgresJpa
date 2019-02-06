@@ -1,0 +1,164 @@
+swagger: "2.0"
+info:
+  description: "Sharing a Birth allows clients to provide details of Birth Cases and the Organisations that the case data should be shared with."
+  version: "0.0.1"
+  title: "Sharing a Birth"
+  termsOfService: "tbd"
+  contact:
+    email: "tbd@dwp.gsi.gov.uk"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "tbd"
+basePath: "/"
+tags:
+- name: "birth-cases"
+  description: "Used to create Births cases and obtain details about which organisations receive case data."
+schemes:
+- "http"
+paths:
+  /birth-cases:
+    post:
+      tags:
+      - "birth-cases"
+      summary: "Creates a Birth Case (known as capture) based on the provided Birth Registration details."
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "body"
+        in: body
+        required: true
+        schema:
+          $ref: "#/definitions/BirthCase"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/definitions/BirthCase"
+      responses:
+        201:
+          description: "Successful operation, returns link to the newly created Birth Report."
+          schema:
+            $ref: "#/definitions/BirthCase"
+          headers:
+            Location:
+              type: "string"
+              description: "URI to the newly created resource."
+        400:
+          description: "Invalid operation. The POST has missing/invalid values."
+        403:
+          description: "Case already created."
+  /birth-cases/{birthCaseId}:
+    get:
+      tags:
+      - "birth-cases"
+      summary: "Gets a Birth Case."
+      produces:
+      - "application/json"
+      parameters:
+      - name: "birthCaseId"
+        in: "path"
+        description: "ID of the Birth Case to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/BirthCase"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Birth Case not found"
+  /birth-cases/{birthCaseId}/enrichment:
+    post:
+      tags:
+      - "birth-cases"
+      summary: "Adds the enrichment details to a Birth Case."
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "birthCaseId"
+        in: "path"
+        description: "ID of the Birth Case to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        201:
+          description: "Successful operation, returns link to the newly created Birth Case enrichment."
+          schema:
+            $ref: "#/definitions/BirthCaseEnrichment"
+          headers:
+            Location:
+              type: "string"
+              description: "URI to the newly created resource."
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Birth Case not found"
+  /birth-cases/{birthCaseId}/submit:
+    post:
+      tags:
+      - "birth-cases"
+      summary: "Submits the Birth Report."
+      produces:
+      - "application/json"
+      parameters:
+      - name: "birthCaseId"
+        in: "path"
+        description: "ID of the Birth Case to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        202:
+          description: "Successful operation, returns link to the status of the submitted Birth Case."
+          schema:
+            $ref: "#/definitions/BirthCaseStatus"
+          headers:
+            Location:
+              type: "string"
+              description: "URI to the newly created resource."
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Birth Report not found"
+definitions:
+  BirthCase:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      dateOfBirth:
+        type: "string"
+        description: "Date format: yyyy-MM-dd"
+
+  BirthCaseEnrichment:
+    type: "object"
+    properties:
+      council:
+        type: "string"
+      organisationsToInform:
+        type: "array"
+        items:
+          $ref: "#/definitions/OrganisationsToInformResponse"
+
+  OrganisationsToInformResponse:
+    type: "object"
+    properties:
+      organisation:
+        type: "string"
+      response:
+        type: "boolean"
+
+  BirthCaseStatus:
+    type: "object"
+    properties:
+      status:
+        type: "string"

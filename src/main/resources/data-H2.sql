@@ -3,7 +3,7 @@
 -- Just add a question and some corresponding answers
 
 insert into births (id, name, birthday) values (1, 'fred', 'yesterday');
-insert into births (id, name, birthday) values (2, 'beety', 'today');
+insert into births (id, name, birthday) values (2, 'betty', 'today');
 insert into births (id, name, birthday) values (3, 'wilma', 'tomorrow');
 
 insert into questions (id, created_at, updated_at, title, description) values (99, now(),now(),  '9', '9');
