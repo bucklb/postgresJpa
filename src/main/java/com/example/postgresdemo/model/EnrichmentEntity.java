@@ -24,6 +24,8 @@ public class EnrichmentEntity {
     private String council = null;
     @Column
     private String organisation = null;
+    @Column
+    private String response = null;
 
     // Is this driven by entity or by domain ???
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -45,6 +47,9 @@ public class EnrichmentEntity {
     public String getOrganisation() { return organisation; }
     public void setOrganisation(String organisation) { this.organisation = organisation; }
 
+    public String getResponse() { return response; }
+    public void setResponse(String response) { this.response = response; }
+
     public BirthCaseEntity getBirthCaseEntity() {
         return birth;
     }
@@ -52,7 +57,21 @@ public class EnrichmentEntity {
         this.birth = birth;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Enrichment {\n");
+        sb.append("    council: ").append(toIndentedString(council)).append("\n");
+        sb.append("    organisationToInform: ").append(toIndentedString(organisation)).append("\n");
+        sb.append("}");
+        return sb.toString();
+    }
 
-
+    private String toIndentedString(java.lang.Object o) {
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n    ");
+    }
 
 }
