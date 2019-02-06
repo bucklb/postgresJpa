@@ -1,7 +1,9 @@
 package com.example.postgresdemo.controller;
 
 import com.example.postgresdemo.model.BirthCaseEntity;
+import com.example.postgresdemo.model.EnrichmentEntity;
 import com.example.postgresdemo.repository.BirthRepository;
+import com.example.postgresdemo.repository.EnrichmentRepository;
 import io.swagger.annotations.ApiParam;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,16 +14,23 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import uk.gov.dwp.tuo.gen.controller.BirthCasesApi;
 import uk.gov.dwp.tuo.gen.domain.BirthCase;
+import uk.gov.dwp.tuo.gen.domain.BirthCaseStatus;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
 
 // TODO : all a bit happy path at the moment
+// TODO : add ability to push a notification (which needs an update to YAML first)
 @Controller
 public class BirthController implements BirthCasesApi {
 
     @Autowired
     private BirthRepository birthRepository;
+
+    @Autowired
+    private EnrichmentRepository enrichmentRepository;
+
 
     @Autowired
     private ModelMapper modelMapper;
@@ -75,6 +84,45 @@ public class BirthController implements BirthCasesApi {
         return new ResponseEntity<BirthCase>(bc, HttpStatus.OK);
     }
 
+    /**
+     * User hits the submit button.  Dump the notifications to screen & return a status
+     * @param birthCaseId
+     * @return
+     */
+    @Override
+    public ResponseEntity<BirthCaseStatus> birthCasesBirthCaseIdSubmitPost(@ApiParam(value = "ID of the Birth Case to return",required=true) @PathVariable("birthCaseId") Long birthCaseId) {
 
+        HttpStatus httpStatus=null;
+
+        // ?? Is anything passed in, beyond the ID ??
+        // Just acknowledge
+        BirthCaseStatus status = new BirthCaseStatus();
+
+        // Try creating a BirthCaseEntity and mapping to BirthCase domain object
+        Optional<BirthCaseEntity> optionalBirthCaseEntity = birthRepository.findById( birthCaseId );
+        if( optionalBirthCaseEntity.isPresent() ) {
+
+            // Grab what we can
+            BirthCase birth = modelMapper.map(optionalBirthCaseEntity.get(), BirthCase.class);
+            List<EnrichmentEntity> enrichments = enrichmentRepository.findByBirthId( birthCaseId );
+
+            // Spin through the list and dump to screen.  There IS a more elegant way ...
+            System.out.println("=== SUBMISSION ==========================================");
+            System.out.println("name = " + birth.getName() + "    dob = " + birth.getDateOfBirth());
+            for(EnrichmentEntity enrichment:enrichments){
+                System.out.println(  enrichment.getId() + " council = " + enrichment.getCouncil() + "    org = " + enrichment.getOrganisation());
+            }
+
+            status.setStatus("Submitted");
+            httpStatus = HttpStatus.OK;
+        } else {
+
+            status.setStatus("Not found");
+            httpStatus = HttpStatus.NOT_FOUND;
+        }
+
+        // Pass something back
+        return new ResponseEntity<BirthCaseStatus>(status, httpStatus);
+    }
 
 }
