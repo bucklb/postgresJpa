@@ -19,6 +19,7 @@ import uk.gov.dwp.tuo.gen.domain.BirthCaseStatus;
 import uk.gov.dwp.tuo.gen.domain.OrganisationsToInformResponse;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -170,15 +171,107 @@ public class BirthController implements BirthCasesApi {
                 r.setResponse(enrichment.getResponse()==null || enrichment.getResponse().equals(""));
                 bce.addOrganisationsToInformItem(r);
 
-//                System.out.println( enrichment.toString() );
-//                System.out.println(  enrichment.getId() + " council = " + enrichment.getCouncil() + "    org = " + enrichment.getOrganisation());
             }
         }
 
         return bce;
     }
 
+    /**
+     * generate a dummy value
+     * @return
+     */
+    private OrganisationsToInformResponse dummyOTIR(String org, boolean b){
+        OrganisationsToInformResponse otir=new OrganisationsToInformResponse();
+        otir.setOrganisation(org);
+        otir.setResponse(b);
+        return otir;
+    }
 
+    /**
+     * generate a new EnrichmentEntity
+     * @param cncl
+     * @param org
+     * @param b
+     * @return
+     */
+    private EnrichmentEntity enrichmentEntity(String cncl, String org, boolean b){
+        EnrichmentEntity entity = new EnrichmentEntity();
+        entity.setCouncil(cncl);
+        entity.setOrganisation(org);
+        entity.setResponse(b?"TRUE":"FALSE");
+        return entity;
+    }
+
+
+    /**
+     * list of enrichment entities from a BirthCaseEnrichment
+     * @param birthCaseEnrichment
+     * @return
+     */
+    private List<EnrichmentEntity> enrichmentEntities (BirthCaseEnrichment birthCaseEnrichment)   {
+        ArrayList<EnrichmentEntity> entities = new ArrayList<>();
+
+        for(OrganisationsToInformResponse otir : birthCaseEnrichment.getOrganisationsToInform()) {
+            entities.add( enrichmentEntity(birthCaseEnrichment.getCouncil(), otir.getOrganisation(), otir.isResponse() ) );
+        }
+
+        return entities;
+    }
+
+
+    /**
+     * Create an enrichment for the birth.  Yaml has no payload though ...
+     * @param birthCaseId
+     * @return
+     */
+    @Override
+    public  ResponseEntity<BirthCaseEnrichment> birthCasesBirthCaseIdEnrichmentPost(
+            @ApiParam(value = "ID of the Birth Case to return",required=true)
+            @PathVariable("birthCaseId") Long birthCaseId) {
+
+        HttpStatus httpStatus=null;
+        BirthCaseEnrichment bce=null;
+
+        // Generate a fake enrichment
+        bce = new BirthCaseEnrichment();
+        bce.setCouncil("municipal");
+        bce.addOrganisationsToInformItem(dummyOTIR("org1",true));
+        bce.addOrganisationsToInformItem(dummyOTIR("org2",false));
+
+
+        // Will need the birthCase to add the enrichment
+        Optional<BirthCaseEntity> optionalBirthCaseEntity = birthRepository.findById( birthCaseId );
+        if( optionalBirthCaseEntity.isPresent() ) {
+
+            // Grab the birth entity (complete with its id) as we need it to be in each EnrichmentEntity
+            BirthCaseEntity birthCaseEntity = optionalBirthCaseEntity.get();
+
+            // Convert to the entity form we need
+            List<EnrichmentEntity> entities = enrichmentEntities(bce);
+            for( EnrichmentEntity e : entities ) {
+                System.out.println(e.toString());
+                e.setBirthCaseEntity(birthCaseEntity);
+                enrichmentRepository.save(e);
+            }
+
+            // Want something to hand back.
+//            bce=new BirthCaseEnrichment(); bce.setCouncil("ENRICHED");
+            bce = enrichmentEntityListAsBirthCaseEnrichment( entities );
+            httpStatus = HttpStatus.OK;
+
+            // Retrieve the added enrichment
+
+        } else {
+            bce=new BirthCaseEnrichment(); bce.setCouncil("Not found");
+            httpStatus = HttpStatus.NOT_FOUND;
+        }
+
+
+        // Pass something back
+        return new ResponseEntity<BirthCaseEnrichment>(bce, httpStatus);
+
+    }
 
 
 
