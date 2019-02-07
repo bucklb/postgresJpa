@@ -187,7 +187,7 @@
 							<generateSupportingFiles>false</generateSupportingFiles>
 							<language>spring</language>
 							<output>target/generated-sources</output>
-							<templateDirectory>src/main/resources/templates</templateDirectory>
+							<!--<templateDirectory>src/main/resources/templates</templateDirectory>-->
 							<!-- pass any necessary config options -->
 							<configOptions>
 								<dateLibrary>joda</dateLibrary>

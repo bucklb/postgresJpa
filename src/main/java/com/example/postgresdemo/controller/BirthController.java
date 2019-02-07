@@ -159,14 +159,11 @@ public class BirthController implements BirthCasesApi {
     @Override
     public  ResponseEntity<BirthCaseEnrichment> birthCasesBirthCaseIdEnrichmentPost(
             @ApiParam(value = "ID of the Birth Case to return",required=true)
-            @PathVariable("birthCaseId") Long birthCaseId) {
+            @PathVariable("birthCaseId") Long birthCaseId,@ApiParam(value = "" ,required=true )
+            @Valid @RequestBody BirthCaseEnrichment body) {
 
         HttpStatus httpStatus=null;
-        BirthCaseEnrichment bce=null;
-
-        // Generate a fake enrichment pending getting a payload (needs YAML update)
-        bce = createDummyBirthCaseEnrichment();
-
+        BirthCaseEnrichment bce=body;
 
         // Will need the birthCase to add the enrichment
         Optional<BirthCaseEntity> optionalBirthCaseEntity = birthRepository.findById( birthCaseId );

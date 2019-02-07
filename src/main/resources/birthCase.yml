@@ -89,6 +89,11 @@ paths:
         required: true
         type: "integer"
         format: "int64"
+      - name: "body"
+        in: body
+        required: true
+        schema:
+          $ref: "#/definitions/BirthCaseEnrichment"
       responses:
         201:
           description: "Successful operation, returns link to the newly created Birth Case enrichment."
