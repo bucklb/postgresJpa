@@ -100,7 +100,20 @@
 			<version>2.7.0</version>
 		</dependency>
 
-
+		<!--
+			Queue ??
+		-->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-aws-messaging</artifactId>
+			<version>1.2.1.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>amazon-sqs-java-messaging-lib</artifactId>
+			<version>1.0.4</version>
+			<type>jar</type>
+		</dependency>
 		<!--
 			Testing
 		-->
