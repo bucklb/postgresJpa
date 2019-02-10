@@ -8,11 +8,14 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
+import com.amazonaws.services.sqs.model.CreateQueueRequest;
+import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.example.postgresdemo.model.BirthCaseEntity;
 import com.example.postgresdemo.model.EnrichmentEntity;
 import com.example.postgresdemo.repository.BirthRepository;
 import com.example.postgresdemo.repository.EnrichmentRepository;
+import com.example.postgresdemo.service.QueueService;
 import io.swagger.annotations.ApiParam;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+// Look at pulling in queue stuff as dependency
+
 // TODO : all a bit happy path at the moment
 // TODO : add ability to push a notification (which needs an update to YAML first)
 // TODO : MUST put a service between the controller and the repos (possibly serverImpls too)
@@ -47,11 +52,8 @@ public class BirthController implements BirthCasesApi {
     @Autowired
     private ModelMapper modelMapper;
 
-
-//    // Will be needed for queueing
-//    @Autowired
-//    AmazonSQS sqs;
-//
+    @Autowired
+    private QueueService sqs;
 
 
     /*
@@ -165,12 +167,8 @@ public class BirthController implements BirthCasesApi {
             httpStatus = HttpStatus.NOT_FOUND;
         }
 
-
-
         // Attempt to get something to a queue.  Minimalist for now but entry could have case + organisations + lots
-        doSQS( "{CaseId : " + birthCaseId + "}" );
-
-
+        sqs.sendMessage( "{CaseId : " + birthCaseId + "}","testing" );
 
         // Pass something back
         return new ResponseEntity<BirthCaseStatus>(status, httpStatus);
@@ -309,75 +307,5 @@ public class BirthController implements BirthCasesApi {
 
         return bce;
     }
-
-
-    /**
-     * At some point should add things to an Amazon queue.
-     *
-     * Need this to be FAR more configurable and probably get created via a config class
-     *
-     *
-     */
-    private void doSQS(String messageBody) {
-
-        String serviceEndpoint = "http://localhost:4576/";
-        String signingRegion   = "us-east-1";
-        String accessKey = "accessKey";
-        String secretKey = "secretKey";
-        String queueUrl  = "queue/test123";
-
-
-        // Create endpoint (as local stack for now)
-        System.out.println("Create endpoint");
-
-        // Where to look
-        AwsClientBuilder.EndpointConfiguration endpoint =
-                new AwsClientBuilder.EndpointConfiguration(
-                        serviceEndpoint,
-                        signingRegion);
-
-        // Credentials to use
-        AWSCredentialsProvider creds =
-                new AWSStaticCredentialsProvider(
-                    new BasicAWSCredentials(
-                        accessKey,
-                        secretKey
-                    )
-                );
-
-        // Create the client to use (with endpoint and basic credentials)
-        System.out.println("create client");
-
-        AmazonSQSClient client =null;
-        try {
-            client = (AmazonSQSClient) AmazonSQSClientBuilder.standard()
-                    .withEndpointConfiguration(endpoint)
-                    .withCredentials(creds)
-                    .build();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Create what we want to send
-        System.out.println("create message request");
-
-        SendMessageRequest smr=new SendMessageRequest()
-                .withQueueUrl(queueUrl)
-                .withMessageBody(messageBody)
-                .withDelaySeconds(1);
-
-
-        // And finally send it
-        System.out.println("Send message request");
-
-        client.sendMessage(smr);
-
-
-    }
-
-
-
-
 
 }
