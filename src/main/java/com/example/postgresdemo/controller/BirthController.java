@@ -1,5 +1,10 @@
 package com.example.postgresdemo.controller;
 
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
+import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.example.postgresdemo.model.BirthCaseEntity;
 import com.example.postgresdemo.model.EnrichmentEntity;
 import com.example.postgresdemo.repository.BirthRepository;
@@ -37,6 +42,13 @@ public class BirthController implements BirthCasesApi {
 
     @Autowired
     private ModelMapper modelMapper;
+
+
+//    // Will be needed for queueing
+//    @Autowired
+//    AmazonSQS sqs;
+//
+
 
     /*
     Still need ability to post enrichment (birthCasesBirthCaseIdSubmitPost) but need that to have a payload
@@ -114,20 +126,23 @@ public class BirthController implements BirthCasesApi {
      * @return
      */
     @Override
-    public ResponseEntity<BirthCaseStatus> birthCasesBirthCaseIdSubmitPost(@ApiParam(value = "ID of the Birth Case to return",required=true) @PathVariable("birthCaseId") Long birthCaseId) {
+    public ResponseEntity<BirthCaseStatus> birthCasesBirthCaseIdSubmitPost(
+            @ApiParam(value = "ID of the Birth Case to return",required=true)
+            @PathVariable("birthCaseId") Long birthCaseId) {
 
         HttpStatus httpStatus=null;
 
         // ?? Is anything passed in, beyond the ID ??
         // Just acknowledge
         BirthCaseStatus status = new BirthCaseStatus();
+        BirthCase birth = null;
 
         // Try creating a BirthCaseEntity and mapping to BirthCase domain object
         Optional<BirthCaseEntity> optionalBirthCaseEntity = birthRepository.findById( birthCaseId );
         if( optionalBirthCaseEntity.isPresent() ) {
 
             // Grab what we can
-            BirthCase birth = modelMapper.map(optionalBirthCaseEntity.get(), BirthCase.class);
+            birth = modelMapper.map(optionalBirthCaseEntity.get(), BirthCase.class);
             List<EnrichmentEntity> enrichments = enrichmentRepository.findByBirthId( birthCaseId );
 
             // Work what we have in database to the desired response (and dump to console)
@@ -145,6 +160,13 @@ public class BirthController implements BirthCasesApi {
             status.setStatus("Not found");
             httpStatus = HttpStatus.NOT_FOUND;
         }
+
+
+
+        // Attempt to get something to a queue.  Minimalist for now but entry could have case + organisations + lots
+        doSQS( "{CaseId : " + birthCaseId + "}" );
+
+
 
         // Pass something back
         return new ResponseEntity<BirthCaseStatus>(status, httpStatus);
@@ -283,6 +305,50 @@ public class BirthController implements BirthCasesApi {
 
         return bce;
     }
+
+
+    /**
+     * At some point should add things to an Amazon queue.
+     *
+     * Need this to be FAR more configurable !!!!
+     *
+     *
+     */
+    private void doSQS(String messageBody) {
+
+        // Create endpoint (as local stack for now)
+        System.out.println("Create endpoint");
+        AwsClientBuilder.EndpointConfiguration endpoint =
+                new AwsClientBuilder.EndpointConfiguration(
+                        "http://localhost:4576/",
+                        "us-east-1");
+
+
+        // No credentials, but may not matter ???
+        System.out.println("create client");
+        AmazonSQSClient client =null;
+        try {
+            client = (AmazonSQSClient) AmazonSQSClientBuilder.standard()
+                    .withEndpointConfiguration(endpoint)
+                    .build();
+        } catch (Exception e) {
+            System.out.println("post client");
+            e.printStackTrace();
+        }
+
+        System.out.println("create message request");
+        SendMessageRequest smr=new SendMessageRequest()
+                .withQueueUrl("queue/test123")
+                .withMessageBody(messageBody)
+                .withDelaySeconds(1);
+
+        System.out.println("Send message request");
+        client.sendMessage(smr);
+
+
+    }
+
+
 
 
 
