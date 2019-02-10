@@ -1,5 +1,9 @@
 package com.example.postgresdemo.controller;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
@@ -310,39 +314,63 @@ public class BirthController implements BirthCasesApi {
     /**
      * At some point should add things to an Amazon queue.
      *
-     * Need this to be FAR more configurable !!!!
+     * Need this to be FAR more configurable and probably get created via a config class
      *
      *
      */
     private void doSQS(String messageBody) {
 
+        String serviceEndpoint = "http://localhost:4576/";
+        String signingRegion   = "us-east-1";
+        String accessKey = "accessKey";
+        String secretKey = "secretKey";
+        String queueUrl  = "queue/test123";
+
+
         // Create endpoint (as local stack for now)
         System.out.println("Create endpoint");
+
+        // Where to look
         AwsClientBuilder.EndpointConfiguration endpoint =
                 new AwsClientBuilder.EndpointConfiguration(
-                        "http://localhost:4576/",
-                        "us-east-1");
+                        serviceEndpoint,
+                        signingRegion);
 
+        // Credentials to use
+        AWSCredentialsProvider creds =
+                new AWSStaticCredentialsProvider(
+                    new BasicAWSCredentials(
+                        accessKey,
+                        secretKey
+                    )
+                );
 
-        // No credentials, but may not matter ???
+        // Create the client to use (with endpoint and basic credentials)
         System.out.println("create client");
+
         AmazonSQSClient client =null;
         try {
             client = (AmazonSQSClient) AmazonSQSClientBuilder.standard()
                     .withEndpointConfiguration(endpoint)
+                    .withCredentials(creds)
                     .build();
+
         } catch (Exception e) {
-            System.out.println("post client");
             e.printStackTrace();
         }
 
+        // Create what we want to send
         System.out.println("create message request");
+
         SendMessageRequest smr=new SendMessageRequest()
-                .withQueueUrl("queue/test123")
+                .withQueueUrl(queueUrl)
                 .withMessageBody(messageBody)
                 .withDelaySeconds(1);
 
+
+        // And finally send it
         System.out.println("Send message request");
+
         client.sendMessage(smr);
 
 
