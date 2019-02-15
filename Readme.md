@@ -38,3 +38,20 @@ Alternatively, you can package the application in the form of a JAR file and the
 mvn clean package
 java -jar -Dspring.profiles.active=H2 target/postgres-demo-0.0.1-SNAPSHOT.jar
 ```
+
+
+If using H2 can use the console to inspect/interact with the data.  Modifications made to the relevant properties file (the H2 one) to allow this.  
+Console on localhost:8888/h2-console
+If challenged for logon then use URL=jdbc:h2:mem:pg-test, user=sa, no password
+
+Add to properties:
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+
+More details on 
+https://medium.com/@harittweets/how-to-connect-to-h2-database-during-development-testing-using-spring-boot-44bbb287570
+
+
+
+
+
