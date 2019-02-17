@@ -1,0 +1,26 @@
+{
+  "name" :
+  {
+    "title" : "Sir",
+    "first" : "Sur",
+    "last":"Name"
+  } ,
+  "address" :
+  {
+    "number":"1984",
+    "road":"high",
+    "town":"campbell",
+    "zip":"YKK"
+  },
+  "dates" :
+  {
+    "birth":"1-1-2001",
+    "death":"6-6-2006"
+  },
+  "nino":"MN000000A",
+  "passport":"p/p #",
+  "registration":"N944FLU",
+  "benefits": [
+    "UC","BSP"
+  ]
+}

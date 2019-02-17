@@ -1,16 +1,21 @@
 package com.example.postgresdemo.controller;
 
+import com.example.postgresdemo.service.DeathDetailsService;
+import io.swagger.annotations.ApiParam;
+import org.mapstruct.Context;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 
 @RequestMapping("")
 @RestController
 public class HomeController {
+
+    @Autowired
+    DeathDetailsService dds;
 
     // Need to push people to where swagger lives ...
     String REDIRECT_RTE="http://localhost:";
@@ -33,6 +38,27 @@ public class HomeController {
     public String getPing() {
         return "pong";
     }
+
+
+    // Dummy up something that will allow generating different response (according to headers)
+    @GetMapping("/details")
+    public String getCase(@RequestHeader(value="jSonPath") String jSonPath){
+
+        String ansa="not found";
+
+        try{
+            ansa = dds.getJsonPath(jSonPath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("get details called with jSonPath = " + jSonPath + " gets -> " + ansa);
+
+        return ansa;
+    }
+
+
+
 
 
 }

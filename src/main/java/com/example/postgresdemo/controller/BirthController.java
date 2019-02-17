@@ -17,13 +17,16 @@ import com.example.postgresdemo.repository.BirthRepository;
 import com.example.postgresdemo.repository.EnrichmentRepository;
 import com.example.postgresdemo.service.QueueService;
 import io.swagger.annotations.ApiParam;
+import org.mapstruct.Context;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import uk.gov.dwp.tuo.gen.controller.BirthCasesApi;
 import uk.gov.dwp.tuo.gen.domain.BirthCase;
 import uk.gov.dwp.tuo.gen.domain.BirthCaseEnrichment;
@@ -114,7 +117,7 @@ public class BirthController implements BirthCasesApi {
      * @return
      */
     @Override
-    public ResponseEntity<BirthCase> birthCasesPost(@ApiParam(value = "" ,required=true )  @Valid @RequestBody BirthCase body) {
+    public ResponseEntity<BirthCase> birthCasesPost( @ApiParam(value = "" ,required=true )  @Valid @RequestBody BirthCase body) {
 
         // Put in fit state to save
         BirthCaseEntity bce = modelMapper.map(body, BirthCaseEntity.class);
