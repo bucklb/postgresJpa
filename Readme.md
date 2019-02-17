@@ -55,3 +55,19 @@ https://medium.com/@harittweets/how-to-connect-to-h2-database-during-development
 
 
 
+
+
+Added some play stuff around retrieving in configurable manner (based on jsonPath primarily) in homeController, rather than risk real stuff
+
+try following - all get and all Content Type application/json:
+  /details       : header key=jSonPath & value= $['dates']
+  /details/multi : value = { "name of deceased":!!$.['name']!!, "date of death":!!$.['dates']['death']!!, "years old":!!$['age']!!, "money":!!$['benefits']!!}
+  /details/test  : no headers, hard coded to return name & benefits
+
+Double exclamation marks used to split the header in to components.  A component beginning $ gets used to pull data from "death.json".  By allowing caller to specify in a string it allows them to use their own keyName and levels of depth in the return code.  If our object has a value several levels down it can be at top level in the output
+
+
+
+
+
+

@@ -31,29 +31,42 @@ public class BootRunner  implements CommandLineRunner {
     @Autowired
     DeathDetailsService dds;
 
+    private String q(String s){
+        return "\""+s+"\"";
+    }
+
+    private String r(String s){
+        return "!!"+s+"!!";
+    }
+
     @Override
     public void run(String... strings) throws Exception {
 
         // Very basic way to exercise things
         System.out.println("Runner is running ...");
-        System.out.println(dds.getJsonPath("$['benefits'][1]"));
-        System.out.println(dds.getJsonPath("$['name']"));
 
-//
-//        Configuration configuration = Configuration.builder().options(Option.ALWAYS_RETURN_LIST).build();
-//        // Get summat to display
-//        json = readFile( jsonFile, StandardCharsets.UTF_8 );
-//        System.out.println(json);
-//
-//        Object dataObject = JsonPath.parse(json)
-//                .read("$[?(@.id == 2)]['director']");
-//
-//        System.out.println(dataObject.toString());
-//
-//        dataObject = JsonPath.parse(json)
-//                .read("");
-//
-//        System.out.println(dataObject.toString());
+        String c=":";
+        String t="";
+
+        // build up some form of template ...
+        t=t + "{ " + q( "name of deceased")+ c + r("$.['name']");
+        t=t + ", " + q( "date of death")+ c + r("$.['dates']['death']");
+        t=t + " }";
+
+        // Pass constructed query
+        System.out.println(dds.getDetails(t));
+
+//        t=q("names")+ c + dds.getJsonPathValue("$['dates']['death']");
+//        System.out.println(t);
+
+
+
+
+
+
+
+
+
 
     }
 

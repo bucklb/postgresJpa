@@ -44,21 +44,35 @@ public class HomeController {
     @GetMapping("/details")
     public String getCase(@RequestHeader(value="jSonPath") String jSonPath){
 
-        String ansa="not found";
-
-        try{
-            ansa = dds.getJsonPath(jSonPath);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        String ansa = dds.getJsonPathValue(jSonPath);
         System.out.println("get details called with jSonPath = " + jSonPath + " gets -> " + ansa);
 
         return ansa;
     }
 
+    // Dummy up something that will allow generating different response (according to headers)
+    @GetMapping("/details/test")
+    public String getTest(){
 
+        String ansa ="";
 
+        ansa= ansa + "{  \"name\" :" + dds.getJsonPathValue("$['name']");
+        ansa= ansa + ",  \"benefit\" :" + dds.getJsonPathValue("$['benefits']");
 
+        ansa = ansa + "  }";
+        System.out.println(ansa);
+
+        return ansa;
+    }
+
+    // Dummy up something that will allow generating different response (according to headers)
+    @GetMapping("/details/multi")
+    public String getMulti(@RequestHeader(value="jSonPath") String jSonPath){
+
+        String ansa = dds.getDetails(jSonPath);
+        System.out.println("get details called with jSonPath = " + jSonPath + " gets -> " + ansa);
+
+        return ansa;
+    }
 
 }

@@ -32,20 +32,71 @@ public class DeathDetailsService {
      * @return
      * @throws Exception
      */
-    public String getJsonPath(String qString) throws Exception {
-
+    public String getJsonPathValue(String qString, boolean doTrim) {
+        String ansa="notfound";
 
         // Get what we are working from
-        json = readFile( jsonFile, StandardCharsets.UTF_8 );
+        try {
+            json = readFile(jsonFile, StandardCharsets.UTF_8);
 
-        // Grab the info
-        Configuration configuration = Configuration.builder().options(Option.ALWAYS_RETURN_LIST).build();
-        Object dataObject = JsonPath.using(configuration).parse(json)
-                .read(qString);
+            // Grab the info
+            Configuration configuration = Configuration.builder().options(Option.ALWAYS_RETURN_LIST).build();
+            Object dataObject = JsonPath.using(configuration).parse(json)
+                    .read(qString);
 
-        return dataObject.toString();
+            ansa = dataObject.toString();
 
+            // For now, strip off the start [ & end ], but not sure it's safe realistically
+            if( doTrim ) {
+                ansa = ansa.substring(1, ansa.length() - 1);
+            }
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return ansa;
     }
+
+    /**
+     * Default will be to trim it of outer [+]
+     * @param qString
+     * @return
+     */
+    public String getJsonPathValue(String qString) {
+        return getJsonPathValue(qString, true);
+    }
+
+
+    /**
+     * Given a request "template" do what we can to
+     * @param t
+     * @return
+     */
+    public String getDetails(String t){
+
+        // what did we get asked for
+        System.out.println(t);
+
+        String[] S = t.split("!!");
+
+        String T="";
+        for(String x:S){
+//            System.out.println(x);
+            if( x.startsWith("$")){
+                x = getJsonPathValue(x);
+            }
+            T=T+x;
+        }
+
+        // reflect what we got
+        System.out.println(T);
+
+        return T;
+    }
+
+
+
 
 
 
