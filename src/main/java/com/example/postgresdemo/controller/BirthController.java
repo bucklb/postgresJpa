@@ -21,18 +21,21 @@ import org.mapstruct.Context;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.dwp.tuo.gen.controller.BirthCasesApi;
 import uk.gov.dwp.tuo.gen.domain.BirthCase;
 import uk.gov.dwp.tuo.gen.domain.BirthCaseEnrichment;
 import uk.gov.dwp.tuo.gen.domain.BirthCaseStatus;
 import uk.gov.dwp.tuo.gen.domain.OrganisationsToInformResponse;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +61,9 @@ public class BirthController implements BirthCasesApi {
     @Autowired
     private QueueService sqs;
 
+    // Want to see if I can get header values from the request(s)
+    @Autowired
+    private HttpServletRequest httpServletRequest;
 
     /*
     Still need ability to post enrichment (birthCasesBirthCaseIdSubmitPost) but need that to have a payload
@@ -71,20 +77,21 @@ public class BirthController implements BirthCasesApi {
      */
 
 
-
-
-
-
-
-
     /**
      * Pass back a requested birth case
      * @param birthCaseId
      * @return
      */
+    @Override
     public ResponseEntity<BirthCase> birthCasesBirthCaseIdGet(
         @ApiParam(value = "ID of the Birth Case to return",required=true)
         @PathVariable("birthCaseId") Long birthCaseId) { //throws java.lang.Exception {
+
+        System.out.println("=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+");
+        System.out.println(httpServletRequest.getHeader("random"));
+        System.out.println(httpServletRequest.getHeader("other"));
+        System.out.println("=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+");
+
 
         HttpStatus httpStatus=null;
         BirthCase bc = null;

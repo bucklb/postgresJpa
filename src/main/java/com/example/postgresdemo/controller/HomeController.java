@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @RequestMapping("")
@@ -16,6 +17,10 @@ public class HomeController {
 
     @Autowired
     DeathDetailsService dds;
+
+    @Autowired
+    HttpServletRequest httpServletRequest;
+
 
     // Need to push people to where swagger lives ...
     String REDIRECT_RTE="http://localhost:";
@@ -52,7 +57,7 @@ public class HomeController {
 
     // Dummy up something that will allow generating different response (according to headers)
     @GetMapping("/details/test")
-    public String getTest(){
+    public String getTest(){//HttpServletRequest request){
 
         String ansa ="";
 
@@ -61,6 +66,9 @@ public class HomeController {
 
         ansa = ansa + "  }";
         System.out.println(ansa);
+
+
+        System.out.println(httpServletRequest.getHeader("random"));
 
         return ansa;
     }
