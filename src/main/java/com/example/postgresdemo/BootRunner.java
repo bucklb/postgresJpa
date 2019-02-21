@@ -5,21 +5,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Map;
 
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Option;
 
 @Component
 public class BootRunner  implements CommandLineRunner {
+
+//    private static Logger log = LoggerFactory.getLogger(PostgresDemoApplication.class);
+    private static final Logger log = Logger.getLogger(BootRunner.class);
 
     private static String json;
     private static File jsonFile = new File("src/main/resources/films.json");
@@ -41,6 +39,10 @@ public class BootRunner  implements CommandLineRunner {
 
     @Override
     public void run(String... strings) throws Exception {
+
+
+
+        log.info("Runner is running ...");
 
         // Very basic way to exercise things
         System.out.println("Runner is running ...");
