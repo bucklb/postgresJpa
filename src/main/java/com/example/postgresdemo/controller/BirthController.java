@@ -126,6 +126,13 @@ public class BirthController implements BirthCasesApi {
     @Override
     public ResponseEntity<BirthCase> birthCasesPost( @ApiParam(value = "" ,required=true )  @Valid @RequestBody BirthCase body) {
 
+        System.out.println("=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+");
+        System.out.println(httpServletRequest.getHeader("random"));
+        System.out.println(httpServletRequest.getHeader("other"));
+        System.out.println("=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+");
+
+
+
         // Put in fit state to save
         BirthCaseEntity bce = modelMapper.map(body, BirthCaseEntity.class);
 
