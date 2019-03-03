@@ -31,7 +31,8 @@ public class ApiValidationExceptionHandler  extends ResponseEntityExceptionHandl
         HttpHeaders httpHeaders = new HttpHeaders();
 //        httpHeaders.add(INTERACTION_ID, ex.getInteractionId());
 
-        return new ResponseEntity<>(apiErrorsList, httpHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
+        // Failed to validate, so that's kind of about the request,
+        return new ResponseEntity<>(apiErrorsList, httpHeaders, HttpStatus.BAD_REQUEST);
     }
 
 

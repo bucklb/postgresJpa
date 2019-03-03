@@ -7,6 +7,9 @@ import org.mapstruct.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -44,7 +47,12 @@ public class HomeController {
     public String getPing() throws ApiValidationException {
 
         if(2>1) {
-            throw new ApiValidationException("registration details", "must not be empty array");
+
+            // TODO : could we throw a ResponseEntityException (so it gets picked up by the stuff that handles other validation)
+            // throw new MethodArgumentNotValidException();
+            throw new HttpMessageNotReadableException("registration detail array should not be empty");
+
+//            throw new ApiValidationException("registration details", "must not be empty array");
         }
 
         return "pong";
