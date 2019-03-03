@@ -1,5 +1,6 @@
 package com.example.postgresdemo.controller;
 
+import com.example.postgresdemo.exception.ApiValidationException;
 import com.example.postgresdemo.service.DeathDetailsService;
 import io.swagger.annotations.ApiParam;
 import org.mapstruct.Context;
@@ -40,7 +41,12 @@ public class HomeController {
 
     // To fit in, continue the ping-pong convention
     @GetMapping("/ping")
-    public String getPing() {
+    public String getPing() throws ApiValidationException {
+
+        if(2>1) {
+            throw new ApiValidationException("registration details", "must not be empty array");
+        }
+
         return "pong";
     }
 

@@ -1,5 +1,6 @@
 package com.example.postgresdemo;
 
+import com.example.postgresdemo.exception.ApiValidationException;
 import com.example.postgresdemo.service.DeathDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -43,6 +44,11 @@ public class BootRunner  implements CommandLineRunner {
 
 
         log.info("Runner is running ...");
+
+        if( 2 > 1) {
+       }
+
+
 
         // Very basic way to exercise things
         System.out.println("Runner is running ...");

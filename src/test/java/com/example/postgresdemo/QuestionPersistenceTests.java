@@ -1,5 +1,8 @@
 package com.example.postgresdemo;
 
+import com.example.postgresdemo.exception.ApiValidationException;
+import com.example.postgresdemo.exception.ApplicationException;
+import com.example.postgresdemo.exception.ApplicationExceptionHandler;
 import com.example.postgresdemo.model.Answer;
 import com.example.postgresdemo.model.Question;
 import com.example.postgresdemo.repository.AnswerRepository;
@@ -22,6 +25,9 @@ public class QuestionPersistenceTests {
     @Autowired
     private QuestionRepository questionRepository;
 
+    @Autowired
+    private ApplicationExceptionHandler a;
+
     // We've put a bunch of answers in.  They should be retrieved
     @Test
     public void testFindAll(){
@@ -32,6 +38,13 @@ public class QuestionPersistenceTests {
 
     }
 
+    @Test
+    public void x() throws Exception{
+
+        throw new ApiValidationException("myField","myMessage");
+
+
+    }
 
 
 
