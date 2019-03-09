@@ -82,11 +82,28 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
         return responseEntity;
     }
 
+    // Will have apiErrors baked in
+    private ResponseEntity<Object> handleApiValidationException(ApiValidationException ex,
+                                                                HttpHeaders headers,
+                                                                HttpStatus status,
+                                                                WebRequest request) {
+        System.out.println("Handling apiValidationException !! <<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+        ResponseEntity<Object> responseEntity = createResponseEntity(ex.getApiErrors(), headers, status, request);
+        return responseEntity;
+    }
+
+
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
                                                                   HttpHeaders headers,
                                                                   HttpStatus status,
                                                                   WebRequest request) {
+
+    if( ApiValidationException.class.getName().equals( ex.getClass().getName()) ){
+        // One of ours
+        return handleApiValidationException((ApiValidationException)ex,headers,status,request);
+    } else {
+        // Vanilla
         insertHeaders(request, headers);
 
         ArrayList<ApiError> apiErrorsList = new ArrayList<>();
@@ -98,6 +115,7 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
 //        bspmLogger.error("handleHttpMessageNotReadable", null, request.getHeader(Constants.INTERACTION_ID), apiErrorsList);
 
         return responseEntity;
+    }
     }
 
     @Override
@@ -139,7 +157,13 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
         ArrayList<ApiError> apiErrorsList = new ArrayList<>();
 
         for (FieldError fieldError : fieldErrors) {
+
+            System.out.println(resolveLocalizedErrorMessage(fieldError));
+            System.out.println(fieldError.getDefaultMessage());
+
+
             String localizedErrorMessage = resolveLocalizedErrorMessage(fieldError);
+//            String localizedErrorMessage = fieldError.getDefaultMessage();
             String rejectedValue = (fieldError.getRejectedValue() == null) ? "null" : fieldError.getRejectedValue().toString();
             String compositeField = fieldError.getField()
                     + FIELD_REJECTION_SEPARATOR + rejectedValue;
@@ -177,6 +201,8 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
         // Junit tests behave strangely if you do!
         if (interactionId != null) {
             headers.add(INTERACTION_ID, interactionId);
+        } else {
+            headers.add(INTERACTION_ID, "nonesuch");
         }
     }
 }

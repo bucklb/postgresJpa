@@ -1,19 +1,28 @@
 package com.example.postgresdemo.controller;
 
+import com.example.postgresdemo.exception.ApiError;
 import com.example.postgresdemo.exception.ApiValidationException;
 import com.example.postgresdemo.service.DeathDetailsService;
 import io.swagger.annotations.ApiParam;
 import org.mapstruct.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.dwp.tuo.gen.domain.BirthCase;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 
 @RequestMapping("")
 @RestController
@@ -71,7 +80,8 @@ public class HomeController {
 
     // Dummy up something that will allow generating different response (according to headers)
     @GetMapping("/details/test")
-    public String getTest(){//HttpServletRequest request){
+    public String getTest()  throws Exception
+    {//HttpServletRequest request){
 
         String ansa ="";
 
@@ -81,11 +91,43 @@ public class HomeController {
         ansa = ansa + "  }";
         System.out.println(ansa);
 
-
+//        httpServletRequest.getHeaders()
         System.out.println(httpServletRequest.getHeader("random"));
+
+        try {
+            thrower();
+        } catch (Exception Ex) {
+            throw (MethodArgumentNotValidException)Ex;
+        }
+
+        System.out.println("");
 
         return ansa;
     }
+
+    private void thrower() throws MethodArgumentNotValidException {
+
+        // Dummy up a request ... the dateOfBirth value will appear as a rejected value (after the colon)
+        BirthCase bc=new BirthCase();
+        bc.dateOfBirth("far far ahead");
+
+        // First parameter should be the object that's being validated.  Create the exception in validator OR do validation here ??
+        // We have an array to deal with, so need to be sure on an item by item basis ((or create a dummy object to do this??))
+        // Not sure the name (2nd parameter) is relevant
+        BeanPropertyBindingResult result = new BeanPropertyBindingResult(bc, "j arthur rank");
+
+        // Need to specify a REAL field name to reject.  The third parameter will be visible as localizedErrorMessage
+        result.rejectValue("dateOfBirth","no future","no future date");
+        // The MethodParameter seems to cope with being Null (for now at least)
+        throw new MethodArgumentNotValidException(
+                null, result
+        );
+
+    }
+
+
+
+
 
     // Dummy up something that will allow generating different response (according to headers)
     @GetMapping("/details/multi")
@@ -96,5 +138,48 @@ public class HomeController {
 
         return ansa;
     }
+
+    // Headers??
+    @GetMapping("/details/header")
+    public ResponseEntity<String> getHeader() throws Exception
+    {
+
+        String s="Yo!";
+        HttpHeaders hdrs=null;
+
+        hdrs = new HttpHeaders();
+        hdrs.add("Key", "Value");
+
+        ArrayList<ApiError> apiErrors = new ArrayList<>();
+        apiErrors.add(new ApiError("field1","msg1"));
+        apiErrors.add(new ApiError("field2","msg2"));
+
+        // Check Chris's concerns
+        ApiValidationException aEx=new ApiValidationException( new ArrayList<>() );
+        aEx.getApiErrors().add(new ApiError("1","2"));
+        aEx.getApiErrors().add(new ApiError("3","4"));
+        aEx.getApiErrors().add(new ApiError("5","6"));
+        System.out.println(" check -> " + aEx.getApiErrors().size());
+
+        HttpMessageNotReadableException e=new HttpMessageNotReadableException("");
+
+        if(apiErrors.size()>0){
+            throw new ApiValidationException(apiErrors);
+        }
+
+//            throw new ApiValidationException("stuff","and Nonsense");
+        ResponseEntity<String> ansa = new ResponseEntity<String>(s, hdrs, HttpStatus.OK);
+
+
+        try {
+            thrower();
+        } catch (Exception Ex) {
+            throw (MethodArgumentNotValidException)Ex;
+        }
+
+        return ansa;
+    }
+
+
 
 }
