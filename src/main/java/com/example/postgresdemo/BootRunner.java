@@ -7,11 +7,17 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import org.apache.log4j.Logger;
+import uk.gov.dwp.tuo.gen.domain.BirthCase;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.Set;
 
 
 @Component
@@ -45,7 +51,29 @@ public class BootRunner  implements CommandLineRunner {
 
         log.info("Runner is running ...");
 
-        if( 2 > 1) {
+        if( 2 > 21) {
+
+
+            BirthCase bc = new BirthCase();
+            bc.setName("fred");
+            bc.setDateOfBirth("2010-10-20");
+
+            // Play with validation type bits ...
+            ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+            Validator validator = factory.getValidator();
+
+            Set<ConstraintViolation<BirthCase>> v = validator.validate(bc);
+
+            System.out.println(v.size());
+
+
+
+
+
+
+
+
+
        }
 
 
