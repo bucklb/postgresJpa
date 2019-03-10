@@ -2,6 +2,7 @@ package com.example.postgresdemo.Validator;
 
 import com.example.postgresdemo.exception.ApiError;
 import com.example.postgresdemo.exception.ApiValidationException;
+import com.example.postgresdemo.mapper.BirthMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.AtomicReferenceArrayAssert;
 import org.junit.Before;
@@ -26,7 +27,6 @@ public class ValidatorTests {
 
 
     static Validator validator;
-
     ObjectMapper mapper;
     ValidatorFactory factory;
 
@@ -133,6 +133,13 @@ public class ValidatorTests {
 
         String bceStr = serialize(bce);
         BirthCaseEnrichment bceObj = deserialize(bceStr);
+
+        BirthMapper bM = new BirthMapper();
+        BirthCaseEnrichment b=bM.getValidatedFromString(bceStr);
+
+        assertEquals(b,bce);
+
+
         Set<ConstraintViolation<BirthCaseEnrichment>> v = validator.validate(bceObj);
 //        System.out.println(v.size());
 

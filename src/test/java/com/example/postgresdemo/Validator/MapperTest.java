@@ -1,5 +1,8 @@
 package com.example.postgresdemo.Validator;
 
+import com.example.postgresdemo.exception.ApiError;
+import com.example.postgresdemo.exception.ApiValidationException;
+import com.example.postgresdemo.mapper.BirthMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import org.junit.Before;
@@ -8,7 +11,10 @@ import uk.gov.dwp.tuo.gen.domain.BirthCaseEnrichment;
 import uk.gov.dwp.tuo.gen.domain.OrganisationsToInformResponse;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.util.AssertionErrors.assertTrue;
 
 //
@@ -17,6 +23,8 @@ import static org.springframework.test.util.AssertionErrors.assertTrue;
 public class MapperTest {
 
     ObjectMapper mapper;
+    BirthMapper birthMapper;
+
     String bceStr;
     BirthCaseEnrichment bceObj;
     BirthCaseEnrichment bce;
@@ -24,6 +32,9 @@ public class MapperTest {
 
     @Before
     public void setup() {
+        // Create bespoke mapper
+        birthMapper = new BirthMapper();
+
         mapper = new ObjectMapper();
         bceStr = "";
         bceObj = null;
@@ -79,19 +90,28 @@ public class MapperTest {
             System.out.println(ex.getStackTrace());
         }
 
+        List<ApiError> apiErrors=null;
+
+
         // Deserialise a nested object
         if (bceStr != null ) {
             try{
-                bceObj = mapper.readValue(bceStr, BirthCaseEnrichment.class);
+//                bceObj = mapper.readValue(bceStr, BirthCaseEnrichment.class);
+                bceObj = birthMapper.getValidatedFromString(bceStr);
                 System.out.println(bceObj.toString());
-            } catch (Exception ex) {
-                System.out.println("DEserialisation not so good");
+            } catch (ApiValidationException ex) {
+                apiErrors = ex.getApiErrors();
+                System.out.println("DEserialisation API Errors");
                 System.out.println(ex.getStackTrace());
+            } catch (Exception e) {
+                System.out.println("DEserialisation not so good");
             }
         }
 
-        // The object should come through unscathed.  ??Will date formats be a problem?? When passing internally should be dd-MM-yyyy
-        assert( bceObj.equals( bce ) );
+        // Object should fail as council was null
+        assertNotNull( apiErrors );
+        assertEquals(1,apiErrors.size());
+        assert(apiErrors.get(0).getLocalizedErrorMessage().contains("null"));
     }
 
     // Enrichment with NULL organisations object
@@ -120,7 +140,8 @@ public class MapperTest {
         // Deserialise a nested object
         if (bceStr != null ) {
             try{
-                bceObj = mapper.readValue(bceStr, BirthCaseEnrichment.class);
+//                bceObj = mapper.readValue(bceStr, BirthCaseEnrichment.class);
+                bceObj = birthMapper.getValidatedFromString(bceStr);
                 System.out.println(bceObj.toString());
             } catch (Exception ex) {
                 System.out.println("DEserialisation not so good");
@@ -159,7 +180,8 @@ public class MapperTest {
         // Deserialise a nested object
         if (bceStr != null ) {
             try{
-                bceObj = mapper.readValue(bceStr, BirthCaseEnrichment.class);
+//                bceObj = mapper.readValue(bceStr, BirthCaseEnrichment.class);
+                bceObj = birthMapper.getValidatedFromString(bceStr);
                 System.out.println(bceObj.toString());
             } catch (Exception ex) {
                 System.out.println("DEserialisation not so good");
@@ -193,12 +215,13 @@ public class MapperTest {
             System.out.println(ex.getStackTrace());
         }
 
-        // Deserialise a nested object
+        // Deserialise a nested object and now VALIDATE
         if (bceStr != null ) {
             try{
-                bceObj = mapper.readValue(bceStr, BirthCaseEnrichment.class);
+//                bceObj = mapper.readValue(bceStr, BirthCaseEnrichment.class);
+                bceObj = birthMapper.getValidatedFromString(bceStr);
                 System.out.println(bceObj.toString());
-            } catch (Exception ex) {
+            } catch (ApiValidationException ex) {
                 System.out.println("DEserialisation not so good");
                 System.out.println(ex.getStackTrace());
             }
@@ -206,7 +229,6 @@ public class MapperTest {
 
         // The object should come through unscathed.  ??Will date formats be a problem?? When passing internally should be dd-MM-yyyy
         assert( bceObj.equals( bce ) );
-
     }
 
 
