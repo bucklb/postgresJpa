@@ -1,6 +1,7 @@
 package com.example.postgresdemo.Validator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import org.junit.Before;
 import org.junit.Test;
 import uk.gov.dwp.tuo.gen.domain.BirthCaseEnrichment;
@@ -23,7 +24,7 @@ public class MapperTest {
 
     @Before
     public void setup() {
-        ObjectMapper mapper = new ObjectMapper();
+        mapper = new ObjectMapper();
         bceStr = "";
         bceObj = null;
     }
@@ -38,7 +39,7 @@ public class MapperTest {
     }
 
     // Just test for Exception, but could be cleverer
-    @Test(expected = RuntimeException.class)
+    @Test(expected = MismatchedInputException.class)
     public void testNullStringSerialisationThrows() throws Exception{
 
         // Leave string null & expect problems with deserialize
@@ -170,7 +171,7 @@ public class MapperTest {
         assert( bceObj.equals( bce ) );
     }
 
-
+    // Try a vanilla case
     @Test
     public void testValidMapping(){
 
@@ -207,5 +208,13 @@ public class MapperTest {
         assert( bceObj.equals( bce ) );
 
     }
+
+
+
+
+
+
+
+
 
 }

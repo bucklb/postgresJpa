@@ -145,9 +145,9 @@ definitions:
         type: "string"
         minLength: 2
         maxLength: 50
-#        pattern: "^[A-Za-z ,.'-]+$"
+        pattern: "^[A-Za-z ,-]+$"
 #        pattern: "[\x00-\x7F]"
-        pattern: "^[^\x7B-\x7F\x5B-\x60]+$"
+#        pattern: "^[^\x7B-\x7F\x5B-\x60]+$"
       dateOfBirth:
         type: "string"
         pattern: '(\d{4}|\d{2})[^\w\d\r\n:](0?[1-9]|1[0-2])[^\w\d\r\n:](0?[1-9]|[12]\d|30|31)'
@@ -155,6 +155,8 @@ definitions:
 
   BirthCaseEnrichment:
     type: "object"
+    required:
+      - council
     properties:
       council:
         type: "string"
