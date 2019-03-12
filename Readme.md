@@ -53,11 +53,6 @@ https://medium.com/@harittweets/how-to-connect-to-h2-database-during-development
 
 
 Random Changes
-Random CONFLICTING change added to master online
-Yet another line ...
-with it  AND then amended online
-to see what git might do
-
 
 
 Added some play stuff around retrieving in configurable manner (based on jsonPath primarily) in homeController, rather than risk real stuff
