@@ -51,7 +51,7 @@ spring.h2.console.path=/h2-console
 More details on 
 https://medium.com/@harittweets/how-to-connect-to-h2-database-during-development-testing-using-spring-boot-44bbb287570
 
-Added online
+Changed online
 Random Changes
 Add a line
 Add another
