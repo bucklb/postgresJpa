@@ -57,7 +57,7 @@ to see what git might do
 with it  AND then amended online
 
 
-
+Random conflicting change added to master online
 
 Added some play stuff around retrieving in configurable manner (based on jsonPath primarily) in homeController, rather than risk real stuff
 
