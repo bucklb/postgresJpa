@@ -53,9 +53,6 @@ https://medium.com/@harittweets/how-to-connect-to-h2-database-during-development
 
 
 Random Changes
-to see what git might do
-with it  AND then amended online
-
 
 Random CONFLICTING change added to master online
 
