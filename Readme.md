@@ -52,12 +52,12 @@ More details on
 https://medium.com/@harittweets/how-to-connect-to-h2-database-during-development-testing-using-spring-boot-44bbb287570
 
 
-Random change
+Random Changes
 to see what git might do
 with it  AND then amended online
 
 
-Random conflicting change added to master online
+Random CONFLICTING change added to master online
 
 Added some play stuff around retrieving in configurable manner (based on jsonPath primarily) in homeController, rather than risk real stuff
 
