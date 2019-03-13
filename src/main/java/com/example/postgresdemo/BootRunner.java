@@ -2,12 +2,15 @@ package com.example.postgresdemo;
 
 import com.example.postgresdemo.exception.ApiValidationException;
 import com.example.postgresdemo.service.DeathDetailsService;
+import com.sun.xml.internal.bind.v2.model.core.EnumConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import org.apache.log4j.Logger;
 import uk.gov.dwp.tuo.gen.domain.BirthCase;
+import uk.gov.dwp.tuo.gen.domain.BirthCaseEnrichment;
+import uk.gov.dwp.tuo.gen.domain.BirthCaseStatus;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -15,8 +18,12 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 
@@ -50,6 +57,38 @@ public class BootRunner  implements CommandLineRunner {
 
 
         log.info("Runner is running ...");
+
+        if ( 2>1 ){
+            ArrayList<BirthCaseStatus.StatusEnum> al= new ArrayList<BirthCaseStatus.StatusEnum>(Arrays.asList(BirthCaseStatus.StatusEnum.values()));
+
+            System.out.println(al.toString());
+
+            // if we have the class name can get the class & thereby the field
+            Class<?> c=Class.forName(      "uk.gov.dwp.tuo.gen.domain.BirthCaseStatus");
+            Field f = c.getDeclaredField("status");
+
+            // Determine if it's enumerated, in which case we can get the enumerated values
+            System.out.println("  -> " + f.getType().isEnum());
+            System.out.println(" --> " +  f.getType().getEnumConstants().length );
+            System.out.println("---> " + Arrays.asList(f.getType().getEnumConstants()));
+
+
+
+
+            // now what
+            System.out.println(f.isEnumConstant());
+
+
+
+
+            BirthCaseStatus.StatusEnum se=null;
+
+
+
+
+        }
+
+
 
         if( 2 > 21) {
 

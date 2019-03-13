@@ -207,12 +207,12 @@ public class BirthController implements BirthCasesApi {
             System.out.println(birth.toString());
             System.out.println(bce.toString());
 
-            status.setStatus("Submitted");
+//            status.setStatus("Submitted");
             httpStatus = HttpStatus.OK;
 
         } else {
 
-            status.setStatus("Not found");
+//            status.setStatus("Not found");
             httpStatus = HttpStatus.NOT_FOUND;
         }
 

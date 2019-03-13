@@ -178,3 +178,9 @@ definitions:
     properties:
       status:
         type: "string"
+        enum:
+          - black
+          - white
+          - red
+          - green
+          - blue
