@@ -2,7 +2,6 @@ package com.example.postgresdemo;
 
 import com.example.postgresdemo.exception.ApiValidationException;
 import com.example.postgresdemo.service.DeathDetailsService;
-import com.sun.xml.internal.bind.v2.model.core.EnumConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -58,6 +57,12 @@ public class BootRunner  implements CommandLineRunner {
 
         log.info("Runner is running ...");
 
+        System.out.println(Helper.me);
+        System.out.println(Helper.getGreeting("them"));
+        System.out.println(Helper.getOverride("capital lEttErs"));
+
+
+
         if ( 2>1 ){
             ArrayList<BirthCaseStatus.StatusEnum> al= new ArrayList<BirthCaseStatus.StatusEnum>(Arrays.asList(BirthCaseStatus.StatusEnum.values()));
 
@@ -104,6 +109,9 @@ public class BootRunner  implements CommandLineRunner {
             Set<ConstraintViolation<BirthCase>> v = validator.validate(bc);
 
             System.out.println(v.size());
+
+
+
 
 
 

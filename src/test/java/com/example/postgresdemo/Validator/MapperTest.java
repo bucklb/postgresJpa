@@ -45,7 +45,8 @@ public class MapperTest {
     private BirthCaseEnrichment birthCaseEnrichment(){
         BirthCaseEnrichment bce = new BirthCaseEnrichment();
         bce.setCouncil("county");
-        bce.setOrganisationsToInform(new ArrayList<OrganisationsToInformResponse>());
+//        bce.setOrganisationsToInform(new ArrayList<OrganisationsToInformResponse>());
+        bce.setOrganisationsToInformResponse(new ArrayList<OrganisationsToInformResponse>());
         return bce;
     }
 
@@ -160,7 +161,8 @@ public class MapperTest {
         // Populate with just council
         bce = new BirthCaseEnrichment();
         bce.setCouncil("district");
-        bce.setOrganisationsToInform(new ArrayList<OrganisationsToInformResponse>());
+//        bce.setOrganisationsToInform(new ArrayList<OrganisationsToInformResponse>());
+        bce.setOrganisationsToInformResponse(new ArrayList<OrganisationsToInformResponse>());
 
         // Experiment with serialisation etc
         ObjectMapper mapper = new ObjectMapper();

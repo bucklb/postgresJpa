@@ -290,7 +290,8 @@ public class BirthController implements BirthCasesApi {
                 OrganisationsToInformResponse r=new OrganisationsToInformResponse();
                 r.setOrganisation(enrichment.getOrganisation());
                 r.setResponse(b);
-                bce.addOrganisationsToInformItem(r);
+//                bce.addOrganisationsToInformItem(r);
+                bce.addOrganisationsToInformResponseItem(r);
 
             }
         }
@@ -333,7 +334,8 @@ public class BirthController implements BirthCasesApi {
     private List<EnrichmentEntity> enrichmentEntities (BirthCaseEnrichment birthCaseEnrichment)   {
         ArrayList<EnrichmentEntity> entities = new ArrayList<>();
 
-        for(OrganisationsToInformResponse otir : birthCaseEnrichment.getOrganisationsToInform()) {
+//        for(OrganisationsToInformResponse otir : birthCaseEnrichment.getOrganisationsToInform()) {
+        for(OrganisationsToInformResponse otir : birthCaseEnrichment.getOrganisationsToInformResponse()) {
             entities.add(
                     createEnrichmentEntity(birthCaseEnrichment.getCouncil(), otir.getOrganisation(), otir.isResponse() ) );
         }
@@ -351,8 +353,10 @@ public class BirthController implements BirthCasesApi {
         BirthCaseEnrichment bce = new BirthCaseEnrichment();
 
         bce.setCouncil("municipal");
-        bce.addOrganisationsToInformItem(createOTIR("org1",true));
-        bce.addOrganisationsToInformItem(createOTIR("org2",false));
+//        bce.addOrganisationsToInformItem(createOTIR("org1",true));
+//        bce.addOrganisationsToInformItem(createOTIR("org2",false));
+        bce.addOrganisationsToInformResponseItem(createOTIR("org1",true));
+        bce.addOrganisationsToInformResponseItem(createOTIR("org2",false));
 
         return bce;
     }

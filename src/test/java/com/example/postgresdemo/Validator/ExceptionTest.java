@@ -13,12 +13,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.MessageSource;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.dwp.tuo.gen.domain.BirthCase;
+import uk.gov.dwp.tuo.gen.domain.BirthCaseEnrichment;
+import uk.gov.dwp.tuo.gen.domain.OrganisationsToInformResponse;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,6 +31,7 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.mockito.BDDMockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 //
@@ -60,6 +64,40 @@ public class ExceptionTest {
                 .setControllerAdvice(new ApiErrorHandler(messageSource))
                 .build();
     }
+
+    @Test
+    public void testApiHandler() throws Exception{
+
+        BirthCaseEnrichment bce = new BirthCaseEnrichment();
+        bce.setCouncil("x");
+        bce.setStatus(BirthCaseEnrichment.StatusEnum.GREEN);
+
+        OrganisationsToInformResponse o=new OrganisationsToInformResponse();
+        o.setOrganisation("!!~!!~££$$||||");
+        o.setStatus(OrganisationsToInformResponse.StatusEnum.BLUE);
+        ArrayList<OrganisationsToInformResponse> oL=new ArrayList<>();
+        oL.add(o);
+
+
+
+//        bce.setOrganisationsToInform(oL);
+        bce.setOrganisationsToInformResponse(oL);
+
+        String input = new ObjectMapper().writeValueAsString(bce);
+
+        // Hit the endpoint we mocked out & see if we get back the values we set up in the exception
+        MvcResult result = mockMvc.perform(post("/birth-cases/69/enrichment")
+                .content(input).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest()).andReturn();
+        ArrayList<ApiError> apiErrors = getOrderedApiErrorsFromMvcResponse(result.getResponse());;
+
+        System.out.println(apiErrors.size());
+        System.out.println(apiErrors.get(0).getField());
+        System.out.println(apiErrors.get(0).getLocalizedErrorMessage());
+    }
+
+
+
 
     @Test
     public void testApiException() throws Exception {

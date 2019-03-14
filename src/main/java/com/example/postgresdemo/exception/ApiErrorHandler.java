@@ -44,12 +44,18 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
         this.messageSource = messageSource;
     }
 
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers,
                                                                   HttpStatus status,
                                                                   WebRequest request) {
         insertHeaders(request, headers);
+
+        System.out.println("~~~~");
+        System.out.println(ex.getBindingResult().getTarget().getClass().getName());
+        System.out.println("~~~~");
+
 
         BindingResult result = ex.getBindingResult();
         List<FieldError> fieldErrors = result.getFieldErrors();
@@ -158,8 +164,8 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
 
         for (FieldError fieldError : fieldErrors) {
 
-            System.out.println(resolveLocalizedErrorMessage(fieldError));
-            System.out.println(fieldError.getDefaultMessage());
+//            System.out.println(resolveLocalizedErrorMessage(fieldError));
+//            System.out.println(fieldError.getDefaultMessage());
 
 
             String localizedErrorMessage = resolveLocalizedErrorMessage(fieldError);
