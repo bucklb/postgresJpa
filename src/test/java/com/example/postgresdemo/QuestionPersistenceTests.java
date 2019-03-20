@@ -38,7 +38,7 @@ public class QuestionPersistenceTests {
 
     }
 
-    @Test
+    @Test(expected = Exception.class)
     public void x() throws Exception{
 
         throw new ApiValidationException("myField","myMessage");

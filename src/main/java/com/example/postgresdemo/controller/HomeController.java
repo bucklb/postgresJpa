@@ -3,6 +3,8 @@ package com.example.postgresdemo.controller;
 import com.example.postgresdemo.exception.ApiError;
 import com.example.postgresdemo.exception.ApiValidationException;
 import com.example.postgresdemo.service.DeathDetailsService;
+import com.example.postgresdemo.service.JWTHelper;
+import io.jsonwebtoken.Claims;
 import io.swagger.annotations.ApiParam;
 import org.mapstruct.Context;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +64,7 @@ public class HomeController {
         String token="";
 
         // Want to run through headers we may have got. But not necessarily ALL the time
-        if (0>1) {
+        if (10>1) {
             System.out.println("Ping has been hit");
             System.out.println("Headers ______________________");
             Enumeration headerNames = request.getHeaderNames();
@@ -77,7 +79,27 @@ public class HomeController {
             System.out.println("Headers -=-=-=-=-=-=-=-=-=-=-=-");
         }
         // One we care about is the authorization (for now)
-        token = " : token = " +request.getHeader("authorization");
+        token = request.getHeader("authorization");
+
+        if( token != null ) {
+
+            System.out.println("authorisation token = " + token);
+
+            // Need to decide on a pattern.  Lots of things suggest preceded by Bearer ...
+            String[] tokens = token.split(" ");
+            token = tokens[tokens.length-1];
+
+            // We should now have the real token in hand. Query it
+            Claims c = JWTHelper.decodeJWT(token);
+
+            String nm =  c.get("name",String.class);
+            System.out.println("Name from token is : " + nm);
+
+        } else {
+            System.out.println("No authorization token found");
+
+        }
+
 
 
 

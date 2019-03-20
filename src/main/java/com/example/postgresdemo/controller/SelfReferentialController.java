@@ -1,6 +1,7 @@
 package com.example.postgresdemo.controller;
 
 import com.example.postgresdemo.exception.ApiValidationException;
+import com.example.postgresdemo.service.JWTHelper;
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,9 @@ import org.springframework.web.client.RestTemplate;
 
     https://stackoverflow.com/questions/19238715/how-to-set-an-accept-header-on-spring-resttemplate-request
     https://www.baeldung.com/rest-template
+
+    Cannot use getFor... with headers.
+    https://stackoverflow.com/questions/16781680/http-get-with-headers-using-resttemplate
  */
 
 
@@ -54,11 +58,20 @@ public class SelfReferentialController {
             HttpHeaders inHeaders = new HttpHeaders();
 
             inHeaders.setContentType(MediaType.APPLICATION_JSON);
-            inHeaders.add("Authorization", "Bearer " + "JWT_token_will_live_here");
+            String tkn = JWTHelper.getTestJWT();
+
+//            tkn="SomethingBenign";
+
+            inHeaders.add("Authorization", "Bearer " + tkn);
 
             HttpEntity<String> entity = new HttpEntity<String>("parameters", inHeaders);
 
-//            resp = rt.getForEntity(url, String.class);
+
+            System.out.println("Check contains");
+            System.out.println(entity.getHeaders().containsKey("authorization"));
+
+
+            resp = rt.getForEntity(url, String.class);
             resp = rt.exchange(url, HttpMethod.GET, entity, String.class);
 
             msg = "Headered : " + url + " : " + resp.getBody();
@@ -75,9 +88,6 @@ public class SelfReferentialController {
 
         return msg;
     }
-
-
-
 
 
 }
