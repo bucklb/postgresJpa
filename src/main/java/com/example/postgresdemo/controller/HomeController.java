@@ -23,6 +23,7 @@ import uk.gov.dwp.tuo.gen.domain.BirthCase;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 @RequestMapping("")
 @RestController
@@ -33,6 +34,9 @@ public class HomeController {
 
     @Autowired
     HttpServletRequest httpServletRequest;
+
+//    @Autowired
+//    HttpHeaders httpHeaders;
 
 
     // Need to push people to where swagger lives ...
@@ -53,9 +57,31 @@ public class HomeController {
 
     // To fit in, continue the ping-pong convention
     @GetMapping("/ping")
-    public String getPing() throws ApiValidationException {
+    public String getPing(HttpServletRequest request) throws ApiValidationException {
 
-        if(2>1) {
+        String token="";
+
+        // Want to run through headers we may have got. But not necessarily ALL the time
+        if (0>1) {
+            System.out.println("Ping has been hit");
+            System.out.println("Headers ______________________");
+            Enumeration headerNames = request.getHeaderNames();
+            while (headerNames.hasMoreElements()) {
+                String key = (String) headerNames.nextElement();
+                String value = request.getHeader(key);
+
+                System.out.println("Header : " + key + "   value : " + value);
+
+//            map.put(key, value);
+            }
+            System.out.println("Headers -=-=-=-=-=-=-=-=-=-=-=-");
+        }
+        // One we care about is the authorization (for now)
+        token = " : token = " +request.getHeader("authorization");
+
+
+
+        if(0>1) {
 
             // TODO : could we throw a ResponseEntityException (so it gets picked up by the stuff that handles other validation)
             // throw new MethodArgumentNotValidException();
@@ -64,7 +90,7 @@ public class HomeController {
 //            throw new ApiValidationException("registration details", "must not be empty array");
         }
 
-        return "pong";
+        return "pong" + token;
     }
 
 
