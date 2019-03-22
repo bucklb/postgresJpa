@@ -3,6 +3,8 @@ package com.example.postgresdemo.mapper;
 import com.example.postgresdemo.exception.ApiError;
 import com.example.postgresdemo.exception.ApiValidationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.Errors;
 import uk.gov.dwp.tuo.gen.domain.BirthCaseEnrichment;
 
 import javax.validation.ConstraintViolation;
@@ -14,6 +16,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 
+
 // Want something to deal with serialisation & deserialisation (and to ensure validation of the latter)
 // means we can better trust what comes off the queue
 public class BirthMapper {
@@ -22,6 +25,10 @@ public class BirthMapper {
     static Validator validator;
     ObjectMapper mapper;
     ValidatorFactory factory;
+
+
+    @Autowired
+    private Errors errors;
 
 
     // Take the given string, turn it in to a BirthCaseEnrichment, then check its validity
@@ -34,6 +41,10 @@ public class BirthMapper {
 
         // Grab any validation issues
         Set<ConstraintViolation<BirthCaseEnrichment>> v = validator.validate(bceObj);
+
+
+///        validator.validate(bceObj, errors)   ;
+
 
         // TODO : A decent place to add any business based errors (not really a date OR future dates)
 

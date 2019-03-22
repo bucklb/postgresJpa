@@ -2,13 +2,17 @@ package com.example.postgresdemo;
 
 import com.example.postgresdemo.controller.HomeController;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.hamcrest.CoreMatchers.containsString;
 
 // Seems important to use this specific "given"
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 
-
+//@RunWith(SpringRunner.class)
+//@SpringBootTest
 public class HomeControllerTests {
 
     @Test

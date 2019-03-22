@@ -28,10 +28,32 @@ public class JWTokenTests {
         soutByName(c,"name");
         soutByName(c,"iss");
 
+        soutByName(c,"noneSuch!");
+
         System.out.println("Get stuff by claim methods/directly");
         System.out.println(c.getIssuer());
 
     }
+
+
+    @Test
+    public void testHelper () throws Exception {
+
+        String tkn = JWTHelper.getTestJWT();
+
+        // See the helper in readiness
+        JWTHelper.doIt( tkn );
+
+
+
+
+    }
+
+
+
+
+
+
 
     /*
         Ought to be a number of reasons why it won't work.  Easiest way to force it is to play with the token !!
