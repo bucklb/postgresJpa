@@ -95,7 +95,7 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
                                                                 HttpStatus status,
                                                                 WebRequest request) {
         if( JwtValidationException.class.getName().equals( ex.getClass().getName()) ){
-            // TODO : should this be elsewhere ??
+            // TODO : should this be elsewhere ??  Jwt checks raise bad request (via ApiValEx) or forbidden (via JwtValEx)
             status = HttpStatus.FORBIDDEN;
         }
         ResponseEntity<Object> responseEntity = createResponseEntity(ex.getApiErrors(), headers, status, request);
@@ -110,7 +110,7 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
                                                                   WebRequest request) {
 
 
-    // If looking to add in JtwValidation ...
+    // If looking to add in JwtValidation, so loosen the checks a tad ...
     if ( ex instanceof ApiValidationException ) {
 //    if( ApiValidationException.class.getName().equals( ex.getClass().getName()) ){
         // One of ours

@@ -7,17 +7,25 @@ import com.example.postgresdemo.exception.ApiError;
 import com.example.postgresdemo.exception.ApiValidationException;
 import com.example.postgresdemo.exception.ApplicationException;
 import com.example.postgresdemo.exception.JwtValidationException;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.*;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.impl.TextCodec;
+import javassist.bytecode.stackmap.BasicBlock;
 import org.mockito.Mock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 
 
@@ -33,13 +41,18 @@ import org.springframework.http.HttpHeaders;
 
 public class JWTHelper {
 
+    static Logger log = LoggerFactory.getLogger(JWTHelper.class);
+
     private static final String BEARER = "Bearer";
     private static final String AUTHTN = "Authorization";
+    private static final String SERVICE  = "services";
+    private static final String PROVIDER = "provider";
 
 
     private static String jwt;
     private static Claims claims;
-    private static ArrayList<String> props;
+    private static List<String> provider;
+    private static List<String> services;
 
 
 
@@ -83,6 +96,7 @@ public class JWTHelper {
 
     /*
         Check that the headers have something usable.  Not yet found a way to get the headers off a request
+        Raises bad request (via ApiValidation) but could raise as forbidden (via JwtValidation)
      */
     private static String checkHeadersForJwt(HttpServletRequest request) {
 
@@ -114,50 +128,139 @@ public class JWTHelper {
     }
 
     /*
+        Want to know if stuff is on the list
+     */
+    public static boolean providerAllowed(String providerName) {
+        return provider.contains( providerName );
+    }
+    public static boolean serviceAllowed(String serviceName) {
+        return services.contains( serviceName );
+    }
+
+
+
+
+    /*
+    If it's a decent token we'll get claims from it.  Otherwise we'll throw exception(s)
+     */
+    private static Claims parseJwtIntoClaims(String jwt) {
+
+        Claims jtwClaims=null;
+
+        // If it's OK we'll get claims, otherwise it's not goo
+        try {
+            jtwClaims = Jwts
+                    .parser()
+                    .setSigningKey(DatatypeConverter.parseBase64Binary(secretKey))
+                    .parseClaimsJws(jwt).getBody();
+        } catch (MalformedJwtException mjEx) {
+            // We can choose that this is a bad request (could equally throw as forbidden)
+            log.info("Unable to use jwt " , mjEx );
+            throw new ApiValidationException("jwt", mjEx.getMessage());
+        } catch (SignatureException seEx) {
+            // Dodgy signature probably better treated as forbidden (eventually)
+            log.info( "Unable to use jwt " , seEx );
+            throw new JwtValidationException("jwt", seEx.getMessage());
+        }
+        return jtwClaims;
+    }
+
+    /*
+        This will be interesting.  Need to check if source, expiry, etc etc seem valid
+     */
+    private static boolean checkTokenValidity( String token ) {
+        return true;
+    }
+
+    /*
+        End game for CRSRW is to get the providers and services from the token.
+        Will throw exceptions ...
+     */
+    private static List<String> getListForClaim(String claimName) {
+
+        String[] claimArray=null;
+        ObjectMapper mapper = new ObjectMapper();
+
+        // Might not have a claim to try & get data from
+        String claimValue = getClaimValue(claimName);
+        if( claimValue==null || claimValue.isEmpty() ){
+            throw new JwtValidationException(claimName,"must be present in jwt");
+        }
+
+        try {
+            claimArray = mapper.readValue(claimValue, String[].class);
+
+        } catch (JsonParseException jpEx) {
+            log.info( "Unable to get " + claimName, jpEx );
+            throw new ApiValidationException(claimName, jpEx.getMessage());
+        } catch (JsonMappingException jmEx) {
+            log.info( "Unable to get " + claimName, jmEx );
+            throw new ApiValidationException(claimName, jmEx.getMessage());
+        } catch (IOException ioEx) {
+            log.info( "Unable to get " + claimName, ioEx );
+            throw new ApiValidationException(claimName,"");
+        }
+
+        // ArrayList offers contains option (in a way that array doesn't)
+        ArrayList<String> claimList = new ArrayList<>();
+        Collections.addAll(claimList, claimArray);
+
+        return claimList;
+    }
+
+
+
+    /*
         Take the request and check that it has the authorisation token (obviously a fail if not present)
         If have the header then check it looks ok
         Finally can check it's from where we expect, still valid, etc etc
-
-        Request passed in direct from controller
      */
     public static boolean checkRequestAuthorisation(HttpServletRequest request){
 
-        // Within this call we can expect to pass back "malformed" type responses
-        // and sub-calls may pass back info about invalid contents
-        // ?? Is a missing jwt a bad request or a forbidden ??
         System.out.println("called checkRequestAuthorisation");
 
-        // See if there's a payload.  May throw exception
+        // Allow option of building up errors
+        ArrayList<ApiError> apiErrors = new ArrayList<>();
+
+        // See if there's a payload.  May throw exception (ApiValidation)
         jwt = checkHeadersForJwt(request);
 
-        // Do we check here that the payload is kosher?
+        // Get what we can from the jwt.  May throw exception - ApiValidation or JwtValidation
         claims = parseJwtIntoClaims( jwt );
+
+        // Next step is to check validity of the token
+
+
+
+        // If we can't get the services or the providers then it's all pointless
+        try {
+            services = getListForClaim( SERVICE );
+        } catch (ApiValidationException avEx) {
+            // Strip the issues out and add to any list we're building up
+            log.info("Unable to get " + SERVICE + " from token",avEx);
+            apiErrors.addAll(avEx.getApiErrors());
+        }
+
+        try {
+            provider = getListForClaim( PROVIDER );
+        } catch (ApiValidationException avEx) {
+            // Strip the issues out and add to any list we're building up
+            log.info("Unable to get " + PROVIDER + " from token",avEx);
+            apiErrors.addAll(avEx.getApiErrors());
+        }
+
+        // If we had issues, then batch them
+        if (apiErrors.size() > 0 ){
+            throw new JwtValidationException(apiErrors);
+        }
+
+
 
         // Probably thrown exception by the time we get here.  If not there's no reason to assume it failed
         return true;
     }
 
 
-    /*
-        If it's a decenttoken we'll get claims from it
-     */
-    private static Claims parseJwtIntoClaims(String jwt) {
-
-        // If it's OK we'll get claims, otherwise it's not goo
-        try {
-            Claims jtwClaims = Jwts
-                    .parser()
-                    .setSigningKey(DatatypeConverter.parseBase64Binary(secretKey))
-                    .parseClaimsJws(jwt).getBody();
-            return jtwClaims;
-        } catch (MalformedJwtException mjEx) {
-            // We can choose that this is a bad request (could equally throw as forbidden)
-            throw new ApiValidationException("jwt", mjEx.getMessage());
-        } catch (SignatureException seEx) {
-            // Dodgy signature probably better treated as forbidden (eventually)
-            throw new JwtValidationException("jwt", seEx.getMessage());
-        }
-    }
 
 
 

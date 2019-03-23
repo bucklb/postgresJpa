@@ -24,37 +24,12 @@ public class ApiValidationException extends HttpMessageNotReadableException {
         this.apiErrors=apiErrors;
     }
 
-
-
-//    private String fieldName;
-//    private String fieldMessage;
     // Allow caller to be spared the pain of creating an array for a single message
     public ApiValidationException(String fieldName, String fieldMessage) {
         super("exceptional");
         this.apiErrors = new ArrayList<>();
         this.apiErrors.add(new ApiError(fieldName,fieldMessage));
-//        this.fieldMessage=fieldMessage;
-//        this.fieldName=fieldName;
     }
 
-
-
-//
-//    public String getFieldName() {
-//        return fieldName;
-//    }
-//
-//    public void setFieldName(String fieldName) {
-//        this.fieldName = fieldName;
-//    }
-//
-//    public String getFieldMessage() {
-//        return fieldMessage;
-//    }
-//
-//    public void setFieldMessage(String fieldMessage) {
-//        this.fieldMessage = fieldMessage;
-//    }
-//
 
 }

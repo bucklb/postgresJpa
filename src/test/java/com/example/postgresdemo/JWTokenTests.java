@@ -168,9 +168,22 @@ public class JWTokenTests {
     public void testValidTokenHeader () {
         String jwt = JWTHelper.generateTestJWT();
         mockServletRequest.addHeader("Authorization","Bearer " + jwt);
-        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
-
+        boolean v=false;
+        try {
+            v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        } catch (ApiValidationException avEx) {
+            System.out.println("");
+        }
         assert(v);
+
+        // check provider & service
+        assert(JWTHelper.providerAllowed("0099229"));
+        assert(!JWTHelper.providerAllowed("noneSuch"));
+
+        assert(JWTHelper.serviceAllowed("family information services"));
+        assert(!JWTHelper.serviceAllowed("noneSuch"));
+
+
     }
 
 
