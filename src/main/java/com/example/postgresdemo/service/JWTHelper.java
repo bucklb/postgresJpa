@@ -6,6 +6,7 @@ import javax.xml.bind.DatatypeConverter;
 import com.example.postgresdemo.exception.ApiError;
 import com.example.postgresdemo.exception.ApiValidationException;
 import com.example.postgresdemo.exception.ApplicationException;
+import com.example.postgresdemo.exception.JwtValidationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.*;
 
@@ -17,6 +18,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.impl.TextCodec;
 import org.mockito.Mock;
+import org.springframework.http.HttpHeaders;
 
 
 
@@ -31,6 +33,11 @@ import org.mockito.Mock;
 
 public class JWTHelper {
 
+    private static final String BEARER = "Bearer";
+    private static final String AUTHTN = "Authorization";
+
+
+    private static String jwt;
     private static Claims claims;
     private static ArrayList<String> props;
 
@@ -74,6 +81,37 @@ public class JWTHelper {
         return jws;
     }
 
+    /*
+        Check that the headers have something usable.  Not yet found a way to get the headers off a request
+     */
+    private static String checkHeadersForJwt(HttpServletRequest request) {
+
+        String authHdr = request.getHeader(AUTHTN);
+
+        // No header isn't good
+        if( authHdr == null ){
+            System.out.println("No authorization header for request");
+            // Really need an authentication version, that will return a forbidden message, but
+            // ought to aspire to using the multi-level approach so can return more than one issue with auth
+            throw new ApiValidationException("jwt","must be provided in an " + AUTHTN + " header");
+        }
+
+        // We have an authorization header, so inspect its payload
+        String auth[] = authHdr.split(" ");
+        if( ! auth[0].equals("Bearer") ) {
+            System.out.println("Authorization doesn't start with Bearer ");
+            throw new ApiValidationException("jwt","must be provided as '" + BEARER + " <jwt>'");
+        }
+
+        // Also check that there's a "payload"
+        if( auth.length<2 || auth[1]==null || auth[1].isEmpty() ) {
+            System.out.println("Authorization has no token");
+            throw new ApiValidationException("jwt","must be provided as : '" + BEARER + " <jwt>' and must have non-empty jwt");
+        }
+
+        // Picked what should be the jwt out.  Someone else can check if it looks kosher
+        return auth[1];
+    }
 
     /*
         Take the request and check that it has the authorisation token (obviously a fail if not present)
@@ -84,45 +122,52 @@ public class JWTHelper {
      */
     public static boolean checkRequestAuthorisation(HttpServletRequest request){
 
+        // Within this call we can expect to pass back "malformed" type responses
+        // and sub-calls may pass back info about invalid contents
+        // ?? Is a missing jwt a bad request or a forbidden ??
         System.out.println("called checkRequestAuthorisation");
 
-        ArrayList<ApiError> apiErrors =new ArrayList<>();
+        // See if there's a payload.  May throw exception
+        jwt = checkHeadersForJwt(request);
 
-        String authHdr = request.getHeader("Authorization");
-        if( authHdr == null ){
-            System.out.println("No authorization header for request");
-            // Really need an authentication version, that will return a forbidden message, but
-            // ought to aspire to using the multi-level approach so can return more than one issue with auth
-            apiErrors.add(new ApiError("jwt","must be provided"));
-            throw new ApiValidationException(apiErrors);
-        }
+        // Do we check here that the payload is kosher?
+        claims = parseJwtIntoClaims( jwt );
 
-        // We have an autorization header, so inspect its payload
-        String auth[] = authHdr.split(" ");
-        if( ! auth[0].equals("Bearer") ) {
-            apiErrors.add(new ApiError("jwt","must be in format 'Bearer <jwt>'"));
-            throw new ApiValidationException(apiErrors);
-        }
-
-
-
-
-        // Probably thrown exception by the time we get here
+        // Probably thrown exception by the time we get here.  If not there's no reason to assume it failed
         return true;
+    }
+
+
+    /*
+        If it's a decenttoken we'll get claims from it
+     */
+    private static Claims parseJwtIntoClaims(String jwt) {
+
+        // If it's OK we'll get claims, otherwise it's not goo
+        try {
+            Claims jtwClaims = Jwts
+                    .parser()
+                    .setSigningKey(DatatypeConverter.parseBase64Binary(secretKey))
+                    .parseClaimsJws(jwt).getBody();
+            return jtwClaims;
+        } catch (MalformedJwtException mjEx) {
+            // We can choose that this is a bad request (could equally throw as forbidden)
+            throw new ApiValidationException("jwt", mjEx.getMessage());
+        } catch (SignatureException seEx) {
+            // Dodgy signature probably better treated as forbidden (eventually)
+            throw new JwtValidationException("jwt", seEx.getMessage());
+        }
     }
 
 
 
     /*
-        At some point need to deal with a JWT
+        At some point need to deal with a JWT. Pull out the claims
      */
     public static Claims parseJWT(String jwt) {
 
-        //This line will throw an exception if it is not a signed JWS (as expected)
-        Claims exClaims = Jwts.parser()
-                .setSigningKey(DatatypeConverter.parseBase64Binary(secretKey))
-                .parseClaimsJws(jwt).getBody();
-        return exClaims;
+        return parseJwtIntoClaims( jwt );
+
     }
 
 
@@ -143,8 +188,8 @@ public class JWTHelper {
         ArrayList<String> l = new ArrayList<>();
         Collections.addAll(l,a);
 
-        String[] x = claims.get("provider", String[].class);
-        System.out.println(x.length);
+//        String[] x = claims.get("provider", String[].class);
+//        System.out.println(x.length);
 
     }
 

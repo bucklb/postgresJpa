@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.instrument.classloading.jboss.JBossLoadTimeWeaver;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -93,7 +94,10 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
                                                                 HttpHeaders headers,
                                                                 HttpStatus status,
                                                                 WebRequest request) {
-        System.out.println("Handling apiValidationException !! <<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+        if( JwtValidationException.class.getName().equals( ex.getClass().getName()) ){
+            // TODO : should this be elsewhere ??
+            status = HttpStatus.FORBIDDEN;
+        }
         ResponseEntity<Object> responseEntity = createResponseEntity(ex.getApiErrors(), headers, status, request);
         return responseEntity;
     }
@@ -105,7 +109,10 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
                                                                   HttpStatus status,
                                                                   WebRequest request) {
 
-    if( ApiValidationException.class.getName().equals( ex.getClass().getName()) ){
+
+    // If looking to add in JtwValidation ...
+    if ( ex instanceof ApiValidationException ) {
+//    if( ApiValidationException.class.getName().equals( ex.getClass().getName()) ){
         // One of ours
         return handleApiValidationException((ApiValidationException)ex,headers,status,request);
     } else {

@@ -1,6 +1,7 @@
 package com.example.postgresdemo;
 
 import com.example.postgresdemo.exception.ApiValidationException;
+import com.example.postgresdemo.exception.JwtValidationException;
 import com.example.postgresdemo.service.JWTHelper;
 import io.jsonwebtoken.Claims;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
@@ -98,27 +99,80 @@ public class JWTokenTests {
 
     // In the absence of any headers, will throw exception
     @Test (expected = ApiValidationException.class)
-    public void testNoHeaders () {
+    public void testInvalid_NoHeaders () {
         JWTHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
+    // Headers, but not an Authorization one
     @Test (expected = ApiValidationException.class)
-    public void testNoAuthHeader () {
+    public void testInvalid_NoAuthHeader () {
         mockServletRequest.addHeader("sayso","sayNotSo");
         JWTHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
+    // Authorization but value doesn't start "Bearer "
     @Test (expected = ApiValidationException.class)
-    public void testInvalidAuthFormatHeader () {
+    public void testInvalid_AuthFormat () {
         mockServletRequest.addHeader("Authorization","sayNotSo");
         JWTHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
+    // Authorization and starts "Bearer " but token is missing
     @Test (expected = ApiValidationException.class)
-    public void testInvalidTokenFormatHeader () {
-        mockServletRequest.addHeader("Authorization","Bearer EvenBarer");
+    public void testInvalid_TokenMissing () {
+        mockServletRequest.addHeader("Authorization","Bearer ");
         JWTHelper.checkRequestAuthorisation(mockServletRequest);
     }
+
+    // Authorization and starts "Bearer " but token is not a.b.c
+    @Test (expected = ApiValidationException.class)
+    public void testInvalid_TokenFormat () {
+        mockServletRequest.addHeader("Authorization","Bearer Even.BarerYet");
+        JWTHelper.checkRequestAuthorisation(mockServletRequest);
+    }
+
+    // Authorization and starts "Bearer ", token in format a.b.c but token is rubbish
+    @Test (expected = ApiValidationException.class)
+    public void testInvalid_TokenRubbish () {
+        mockServletRequest.addHeader("Authorization","Bearer Even.Barer.Yet");
+        JWTHelper.checkRequestAuthorisation(mockServletRequest);
+    }
+
+    // If we give it a dicky token
+    @Test (expected = ApiValidationException.class)
+    public void testInValidated_TokenHeaderHeader () {
+        String jwt = JWTHelper.generateTestJWT();
+        mockServletRequest.addHeader("Authorization","Bearer xyz" + jwt);
+        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+    }
+
+    // If we give it a mis-signed token then expect rather different treatment
+    @Test (expected = JwtValidationException.class)
+    public void testInValidated_TokenSignatureHeader () {
+        String jwt = JWTHelper.generateTestJWT();
+        mockServletRequest.addHeader("Authorization","Bearer " + jwt + 99);
+        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+
+    }
+
+
+
+
+
+
+
+
+
+    // Test with a meaningful token
+    @Test
+    public void testValidTokenHeader () {
+        String jwt = JWTHelper.generateTestJWT();
+        mockServletRequest.addHeader("Authorization","Bearer " + jwt);
+        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+
+        assert(v);
+    }
+
 
 
 

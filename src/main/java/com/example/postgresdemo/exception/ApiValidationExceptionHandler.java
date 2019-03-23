@@ -15,6 +15,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
 @RestControllerAdvice
 public class ApiValidationExceptionHandler  extends ResponseEntityExceptionHandler  {
@@ -31,8 +32,10 @@ public class ApiValidationExceptionHandler  extends ResponseEntityExceptionHandl
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Object> ApiValidationExceptionException(ApiValidationException ex) {
 
-        ArrayList<ApiError> apiErrorsList = new ArrayList<>();
-        apiErrorsList.add(new ApiError(ex.getFieldName(), ex.getFieldMessage()));
+        // Want to see if new approach works better
+//        ArrayList<ApiError> apiErrorsList = new ArrayList<>();
+//        apiErrorsList.add(new ApiError(ex.getFieldName(), ex.getFieldMessage()));
+        List<ApiError> apiErrorsList = ex.getApiErrors();
         HttpHeaders httpHeaders = new HttpHeaders();
 
         String S="";

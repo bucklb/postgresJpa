@@ -3,6 +3,7 @@ package com.example.postgresdemo.exception;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,32 +26,35 @@ public class ApiValidationException extends HttpMessageNotReadableException {
 
 
 
-    private String fieldName;
-    private String fieldMessage;
+//    private String fieldName;
+//    private String fieldMessage;
+    // Allow caller to be spared the pain of creating an array for a single message
     public ApiValidationException(String fieldName, String fieldMessage) {
         super("exceptional");
-        this.fieldMessage=fieldMessage;
-        this.fieldName=fieldName;
+        this.apiErrors = new ArrayList<>();
+        this.apiErrors.add(new ApiError(fieldName,fieldMessage));
+//        this.fieldMessage=fieldMessage;
+//        this.fieldName=fieldName;
     }
 
 
 
-
-    public String getFieldName() {
-        return fieldName;
-    }
-
-    public void setFieldName(String fieldName) {
-        this.fieldName = fieldName;
-    }
-
-    public String getFieldMessage() {
-        return fieldMessage;
-    }
-
-    public void setFieldMessage(String fieldMessage) {
-        this.fieldMessage = fieldMessage;
-    }
-
+//
+//    public String getFieldName() {
+//        return fieldName;
+//    }
+//
+//    public void setFieldName(String fieldName) {
+//        this.fieldName = fieldName;
+//    }
+//
+//    public String getFieldMessage() {
+//        return fieldMessage;
+//    }
+//
+//    public void setFieldMessage(String fieldMessage) {
+//        this.fieldMessage = fieldMessage;
+//    }
+//
 
 }

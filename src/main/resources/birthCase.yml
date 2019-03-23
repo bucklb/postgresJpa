@@ -173,8 +173,6 @@ definitions:
 
   OrganisationsToInformResponse:
     type: "object"
-    required:
-      - status
     properties:
       organisation:
         pattern: "^[A-Za-z ,-]+$"
@@ -192,8 +190,6 @@ definitions:
 
   BirthCaseStatus:
     type: "object"
-    required:
-      - status
     properties:
       status:
         type: "string"

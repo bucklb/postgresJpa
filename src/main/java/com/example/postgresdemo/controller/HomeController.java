@@ -89,6 +89,7 @@ public class HomeController {
 
         // One we care about is the authorization (for now)
         token = request.getHeader("authorization");
+        System.out.println(token);
 
         if( token != null ) {
 

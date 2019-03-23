@@ -65,7 +65,7 @@ public class SelfReferentialController {
             inHeaders.setContentType(MediaType.APPLICATION_JSON);
             String tkn = JWTHelper.generateTestJWT();
 
-//            tkn="SomethingBenign";
+            tkn="SomethingBenign";
 
             inHeaders.add("Authorization", "Bearer " + tkn);
 
@@ -77,8 +77,12 @@ public class SelfReferentialController {
 
 
             resp = rt.getForEntity(url, String.class);
-            resp = rt.exchange(url, HttpMethod.GET, entity, String.class);
 
+            try {
+                resp = rt.exchange(url, HttpMethod.GET, entity, String.class);
+            } catch (ApiValidationException avEX){
+                throw avEX;
+            }
             msg = "Headered : " + url + " : " + resp.getBody();
 
             // Look at handling returned headers. What to do with them ???
