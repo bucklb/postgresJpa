@@ -70,7 +70,7 @@ public class JWTokenTests {
         String tkn = JWTHelper.generateTestJWT();
 
         // See the helper in readiness
-        JWTHelper.doIt( tkn );
+////        JWTHelper.doIt( tkn );
 
     }
 
@@ -172,7 +172,7 @@ public class JWTokenTests {
         try {
             v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
         } catch (ApiValidationException avEx) {
-            System.out.println("");
+            System.out.println(avEx.toString());
         }
         assert(v);
 
