@@ -1,9 +1,11 @@
 package com.example.postgresdemo.exception;
 
+import org.omg.SendingContext.RunTime;
+
 /**
  * Allow interaction id to be part of exceptions
  */
-public class ApplicationException extends Exception {
+public class ApplicationException extends RuntimeException {
 
     private String interactionId;
 

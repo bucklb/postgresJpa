@@ -1,10 +1,10 @@
 package com.example.postgresdemo;
 
 import com.example.postgresdemo.controller.HomeController;
+import com.example.postgresdemo.service.JWTHelper;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 import static org.hamcrest.CoreMatchers.containsString;
 
@@ -27,13 +27,14 @@ public class HomeControllerTests {
         // Create the test controller outside the "given" command such that we can inject a mocked service/repo
         HomeController hc = new HomeController();
 
+        // Without authentication an ApiValidationException gets thrown (and converted to a 400 response by default)
         given().
                 standaloneSetup(hc).
                 when().
                 get("/ping").
                 then().
-                statusCode(200).
-                body(containsString("pong"));
+                statusCode(400).
+                body(containsString(""));
     }
 
     // Home should redirect us to a swagger-ui.html location.  Check redirected and location at least includes swagger
@@ -48,6 +49,38 @@ public class HomeControllerTests {
                 statusCode(302).
                 header("Location",containsString("swagger-ui.html"));
     }
+
+    // Want to start looking at behaviour with jwt token (or lack thereof)
+    @Test
+    public void jwtPingTest() {
+
+        // Create the test controller outside the "given" command such that we can inject a mocked service/repo
+        HomeController hc = new HomeController();
+
+        // The headers are the key bit
+        // Pass headers in to see what happens with authorisation
+        HttpHeaders inHeaders = new HttpHeaders();
+
+        inHeaders.setContentType(MediaType.APPLICATION_JSON);
+        String tkn = JWTHelper.generateTestJWT();
+        inHeaders.add("Authorization", "Bearer " + tkn);
+
+
+        // The default handler should kick in and turn any ApiValidationException to a 400.
+            given().
+                    standaloneSetup(hc)
+                    .headers(inHeaders)
+                    .when()
+                    .get("/ping")
+                    .then()
+                    .statusCode(200)
+                    .body(containsString(""));
+
+
+    }
+
+
+
 
 
 }

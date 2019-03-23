@@ -3,7 +3,6 @@ package com.example.postgresdemo.controller;
 import com.example.postgresdemo.exception.ApiValidationException;
 import com.example.postgresdemo.service.JWTHelper;
 import org.springframework.http.*;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +23,12 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("self")
 @RestController
 public class SelfReferentialController {
+
+    // Now doing check on basis of a request (and specifically its headers)
+
+
+
+
 
     // To fit in, continue the ping-pong convention
     @GetMapping("/ping")
@@ -58,7 +63,7 @@ public class SelfReferentialController {
             HttpHeaders inHeaders = new HttpHeaders();
 
             inHeaders.setContentType(MediaType.APPLICATION_JSON);
-            String tkn = JWTHelper.getTestJWT();
+            String tkn = JWTHelper.generateTestJWT();
 
 //            tkn="SomethingBenign";
 

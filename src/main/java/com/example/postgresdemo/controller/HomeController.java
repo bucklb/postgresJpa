@@ -5,20 +5,14 @@ import com.example.postgresdemo.exception.ApiValidationException;
 import com.example.postgresdemo.service.DeathDetailsService;
 import com.example.postgresdemo.service.JWTHelper;
 import io.jsonwebtoken.Claims;
-import io.swagger.annotations.ApiParam;
-import org.mapstruct.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.dwp.tuo.gen.domain.BirthCase;
 
@@ -57,27 +51,42 @@ public class HomeController {
         httpServletResponse.setStatus(REDIRECT_CDE);
     }
 
+    private void zipThruRequestHeaders(HttpServletRequest request){
+        System.out.println("Headers ______________________");
+        Enumeration headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String key = (String) headerNames.nextElement();
+            String value = request.getHeader(key);
+
+            System.out.println("Header : " + key + "   value : " + value);
+
+//            map.put(key, value);
+        }
+        System.out.println("Headers -=-=-=-=-=-=-=-=-=-=-=-");
+    }
+
+
     // To fit in, continue the ping-pong convention
     @GetMapping("/ping")
     public String getPing(HttpServletRequest request) throws ApiValidationException {
 
         String token="";
+        System.out.println("Ping has been hit");
 
         // Want to run through headers we may have got. But not necessarily ALL the time
-        if (10>1) {
-            System.out.println("Ping has been hit");
-            System.out.println("Headers ______________________");
-            Enumeration headerNames = request.getHeaderNames();
-            while (headerNames.hasMoreElements()) {
-                String key = (String) headerNames.nextElement();
-                String value = request.getHeader(key);
+        if (10>1) { zipThruRequestHeaders(request); }
 
-                System.out.println("Header : " + key + "   value : " + value);
 
-//            map.put(key, value);
-            }
-            System.out.println("Headers -=-=-=-=-=-=-=-=-=-=-=-");
-        }
+        // Devolve request checking to JwtHelper
+        JWTHelper.checkRequestAuthorisation(request);
+
+
+
+
+
+
+
+
         // One we care about is the authorization (for now)
         token = request.getHeader("authorization");
 
@@ -90,7 +99,7 @@ public class HomeController {
             token = tokens[tokens.length-1];
 
             // We should now have the real token in hand. Query it
-            Claims c = JWTHelper.decodeJWT(token);
+            Claims c = JWTHelper.parseJWT(token);
 
             String nm =  c.get("name",String.class);
             System.out.println("Name from token is : " + nm);
