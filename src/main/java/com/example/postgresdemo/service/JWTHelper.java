@@ -296,7 +296,7 @@ public class JWTHelper {
         // Other things we can check?
         checkTokenIssuer( token );
 
-        // aud / audience ??
+        // TODO : aud / audience ??
 
         // sub / subject ??
 
@@ -389,7 +389,7 @@ public class JWTHelper {
         Finally can check it's from where we expect, still valid, etc etc
         ?? Gather the various issues together (and return a set) or just return first one ??
      */
-    public static boolean checkRequestAuthorisation(HttpServletRequest request){
+    public static boolean checkRequestAuthorisation(HttpServletRequest request) throws ApiValidationException {
 
         System.out.println("called checkRequestAuthorisation");
 
@@ -425,9 +425,9 @@ public class JWTHelper {
 
 
     /*
-        At some point need to deal with a JWT. Pull out the claims.  Might not always be via request ??
+        At some point need to deal with a JWT. Pull out the claims. NOTE : Will object to blindingly obvious problems ONLY
      */
-    public static Claims parseJWT(String jwt) {
+    public static Claims parseJWT(String jwt) throws ApiValidationException {
 
         return parseJwtIntoClaims( jwt );
 
