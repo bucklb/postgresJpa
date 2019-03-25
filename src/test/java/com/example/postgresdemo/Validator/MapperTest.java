@@ -53,7 +53,7 @@ public class MapperTest {
         otir.setOrganisation("org");
         otir.setResponse(true);
 
-        bce.getOrganisationsToInformResponse().add(new OrganisationsToInformResponse());
+        bce.getOrganisationsToInformResponse().add(otir);
         return bce;
     }
 
@@ -235,6 +235,7 @@ public class MapperTest {
             } catch (ApiValidationException ex) {
                 System.out.println("DEserialisation not so good");
                 System.out.println(ex.getStackTrace());
+
             }
         }
 
