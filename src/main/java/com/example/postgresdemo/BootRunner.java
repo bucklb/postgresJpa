@@ -1,6 +1,9 @@
 package com.example.postgresdemo;
 
 import com.example.postgresdemo.exception.ApiValidationException;
+
+import com.example.postgresdemo.model.Answer;
+
 import com.example.postgresdemo.service.DeathDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -54,8 +57,21 @@ public class BootRunner  implements CommandLineRunner {
     public void run(String... strings) throws Exception {
 
 
-
         log.info("Runner is running ...");
+
+//        Answer dummy = new Answer();
+//        Field ff = dummy.getClass().getDeclaredField("text");
+//        System.out.println(ff..toString() + " : ");
+//
+//        log.info("Runner is running ...");
+
+
+
+
+
+
+
+
 
         System.out.println(Helper.me);
         System.out.println(Helper.getGreeting("them"));
