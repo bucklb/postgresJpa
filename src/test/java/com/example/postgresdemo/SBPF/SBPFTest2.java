@@ -1,12 +1,15 @@
 package com.example.postgresdemo.SBPF;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import org.junit.Test;
+import org.springframework.remoting.jaxws.SimpleJaxWsServiceExporter;
 
 /*
     Toy with the filtering when we can't annotate the class
@@ -157,6 +160,10 @@ public class SBPFTest2 {
                 // Add a MixIn for each class
                 .addMixIn(AClass.class, DynamicMixIn.class)
                 .addMixIn(BClass.class, DynamicMixInToo.class);
+
+        // Exclude nulls?? Specifically the nulCheck value
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
         FilterProvider filterProvider = new SimpleFilterProvider()
                 // Add the two filters linked to the two MixIns added
                 .addFilter("dynamicFilter",
