@@ -11,10 +11,10 @@ public class BigDummyTest {
         bd.testMe();
     }
 
-    @Test
-    public void testToo() throws Exception {
-        BigDummy bd=new BigDummy();
-        bd.testMeToo(new ObjectMapper());
-    }
+//    @Test
+//    public void testToo() throws Exception {
+//        BigDummy bd=new BigDummy();
+//        bd.testMeToo(new ObjectMapper());
+//    }
 
 }
