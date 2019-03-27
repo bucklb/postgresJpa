@@ -13,6 +13,8 @@ import org.bouncycastle.operator.bc.BcAESSymmetricKeyUnwrapper;
 import org.junit.Test;
 import org.springframework.remoting.jaxws.SimpleJaxWsServiceExporter;
 
+import static org.junit.Assert.assertEquals;
+
 /*
     Toy with the filtering when we can't annotate the class
 
@@ -48,40 +50,42 @@ public class SBPFTest2 {
 
 
 
+    // The MixIn stuff (which presumably relies on reflecting a class in to a wrapper ???
     @JsonFilter("test")
     class AClassMixIn {}
-
-
-    // Presumably the lot
-    @Test
-    public void SbpfTest_raw() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        String[] ignorableFieldNames = {  };
-        String[] ignorableFieldNames1 = {  };
-        FilterProvider filters = new SimpleFilterProvider()
-                .addFilter("filterAClass",SimpleBeanPropertyFilter.serializeAllExcept(ignorableFieldNames))
-                .addFilter("filterBClass", SimpleBeanPropertyFilter.serializeAllExcept(ignorableFieldNames1));
-        ObjectWriter writer = mapper.writer(filters);
-//        System.out.println(writer.writeValueAsString(new AClass()));
-    }
-
-    // The MixIn stuff (which presumably relies on reflecting a class in to a wrapper ???
-
     @JsonFilter("dynamicFilter")
-    public class DynamicMixIn {
+    public class DynamicMixIn {    }
+    @JsonFilter("dynamicFilterToo")
+    public class DynamicMixInToo {    }
+
+    private void passClass(Class c) {
+        System.out.println(c.getName());
     }
 
-    @JsonFilter("dynamicFilterToo")
-    public class DynamicMixInToo {
+    private AClass getTestAClass() {
+        BClass[] bclass = {new BClass(), new BClass(), new BClass()};
+        String[] color = {"red", "blue"};
+
+        return new AClass("69","naughty", color,69, bclass);
     }
+
+
+
+
+
+
+
 
     /*
         Pass in the class so can illustrate the effect
+        NOTE : tests for de-serialisation REALLY need noNull to be true
      */
     private String illustrateMixInClass(Class c, boolean noNull) throws Exception {
 
 
-        BClass[] bclass = {new BClass(), new BClass(), new BClass()};
+        BClass[] bclass = {
+                new BClass("ego","big","small"),
+                new BClass("super-ego","little","tall")};
         String[] color = {"black", "blue"};
 
         AClass aClass = new AClass("69","naughty", color,69, bclass);
@@ -111,40 +115,54 @@ public class SBPFTest2 {
         return jSon;
     }
 
-    private void passClass(Class c) {
-        System.out.println(c.getName());
+    // Presumably the lot
+    @Test
+    public void SbpfTest_raw() throws Exception {
+
+        ObjectMapper mapper = new ObjectMapper();
+        String[] ignorableFieldNames = {  };
+        String[] ignorableFieldNames1 = {  };
+        FilterProvider filters = new SimpleFilterProvider()
+                .addFilter("filterAClass",SimpleBeanPropertyFilter.serializeAllExcept(ignorableFieldNames))
+                .addFilter("filterBClass", SimpleBeanPropertyFilter.serializeAllExcept(ignorableFieldNames1));
+        ObjectWriter writer = mapper.writer(filters);
+//        System.out.println(writer.writeValueAsString(new AClass()));
     }
 
-    private AClass getTestAClass() {
-        BClass[] bclass = {new BClass(), new BClass(), new BClass()};
-        String[] color = {"red", "blue"};
 
-        return new AClass("69","naughty", color,69, bclass);
-    }
-
-
+    // Look at the effect of applying a mixIn/filter to different classes
     @Test
     public void SbpfTest_MixIn_1() throws Exception {
 
         String jSon=null;
+        ObjectMapper noNullOM = new ObjectMapper();
+        noNullOM.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        ObjectMapper allowNullOM = new ObjectMapper();
+        AClass a=null;
 
         // Apply "dynamicFilter" to all.  Id is lost from AClass & BClass (A also loses color & B also loses size)
         jSon = illustrateMixInClass(Object.class,true );
+        a=noNullOM.readValue(jSon, AClass.class);
+        assertEquals(jSon,noNullOM.writeValueAsString(a));
 
-        // Apply "dynamicFilter" to AClass only.  Id is lost ONLY from AClass.  B keeps id & size
+        // Apply "dynamicFilter" to AClass only.  Id is lost ONLY from AClass.  B keeps id & size.
+        // Can't do deserialisation test as not setting noNull
         jSon = illustrateMixInClass(AClass.class,false );
 
         // Apply to B only.  Id is lost ONLY from BClass.  A keeps id & color
         jSon = illustrateMixInClass(BClass.class,true );
-        
-
-        // Apply "dynamicFilter" to AClass only.  Id is lost
-        jSon = illustrateMixInClass(AClass.class,false );   // Finally.  Can we get an object back again
+        a=noNullOM.readValue(jSon, AClass.class);
+        assertEquals(jSon,noNullOM.writeValueAsString(a));
 
 
-        ObjectMapper om = new ObjectMapper();
-         AClass a=om.readValue(jSon, AClass.class);
-        jSon = om.writeValueAsString(a);
+        System.out.println("--------------------------------------------------------------------------------");
+
+        // Apply "dynamicFilter" to AClass only.  Id is lost.  Use noNull = true this time
+        jSon = illustrateMixInClass(AClass.class,true );   // Finally.  Can we get an object back again
+
+        // Null to Null
+        a=noNullOM.readValue(jSon, AClass.class);
+        assertEquals(jSon,noNullOM.writeValueAsString(a));
 
         System.out.println( jSon );
 
