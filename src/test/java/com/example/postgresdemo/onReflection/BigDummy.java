@@ -8,19 +8,27 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 
+@JsonFilter("big dummy filter")
 public class BigDummy {
 
 
-//    @JsonFilter("dummy filter")
+    @JsonFilter("dummy filter")
     private class Dummy {
         public String forename="Test";
-        public  String surname="TestSS";
+        private  String surname="TestSS";
         private  String child_DOB = "20-09-2018";
         public  String date_Of_Registration = "19-02-2019";
         private  String registration_District = "Cardiff";
         public  String reference_num="5c65894fc305d2b5dbe98d01";
         private  String sex_Of_Child ="Male";
 
+        public String getSurname() {
+            return surname;
+        }
+
+        public String getRegistration_District() {
+            return registration_District;
+        }
     }
 
     /*
@@ -47,6 +55,9 @@ public class BigDummy {
         om = new ObjectMapper();
         om.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
+
+//        om.getSerializationConfig().mixInCount()
+
         System.out.println("Here !!!");
 
         String[] includedFields = new String[]{"surname", "forename"};
@@ -56,7 +67,7 @@ public class BigDummy {
                 .addFilter("dummy filter",
                         SimpleBeanPropertyFilter
 //                                .serializeAll());
-                                .serializeAllExcept("surname"));
+                                .serializeAllExcept("reference_num"));
 //                                .serializeAllExcept(includedFields));
 
         ObjectWriter newWriter;
