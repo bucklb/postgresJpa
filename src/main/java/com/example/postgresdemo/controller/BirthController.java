@@ -11,6 +11,9 @@ import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.example.postgresdemo.exception.ApiValidationException;
+import com.example.postgresdemo.exception.ApplicationException;
+import com.example.postgresdemo.exception.JwtValidationException;
 import com.example.postgresdemo.model.BirthCaseEntity;
 import com.example.postgresdemo.model.EnrichmentEntity;
 import com.example.postgresdemo.repository.BirthRepository;
@@ -125,7 +128,11 @@ public class BirthController implements BirthCasesApi {
      * @return
      */
     @Override
-    public ResponseEntity<BirthCase> birthCasesPost( @ApiParam(value = "" ,required=true )  @Valid @RequestBody BirthCase body) {
+    public ResponseEntity<BirthCase> birthCasesPost( @ApiParam(value = "" ,required=true ) @Valid @RequestBody BirthCase body) {
+
+
+
+
 
         System.out.println("=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+");
         System.out.println(httpServletRequest.getHeader("random"));

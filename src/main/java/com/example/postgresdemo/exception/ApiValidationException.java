@@ -1,5 +1,7 @@
 package com.example.postgresdemo.exception;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,6 +19,9 @@ public class ApiValidationException extends HttpMessageNotReadableException {
     private List<ApiError> apiErrors;
     public List<ApiError> getApiErrors() {        return apiErrors;    }
     public void setApiErrors(List<ApiError> apiErrors) {        this.apiErrors = apiErrors;    }
+
+    @Autowired
+    HttpInputMessage httpInputMessage;
 
     // Construct with errors
     public ApiValidationException(List<ApiError> apiErrors) {

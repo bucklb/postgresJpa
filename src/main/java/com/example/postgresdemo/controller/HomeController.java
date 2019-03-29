@@ -1,7 +1,6 @@
 package com.example.postgresdemo.controller;
 
-import com.example.postgresdemo.exception.ApiError;
-import com.example.postgresdemo.exception.ApiValidationException;
+import com.example.postgresdemo.exception.*;
 import com.example.postgresdemo.service.DeathDetailsService;
 import com.example.postgresdemo.service.JWTHelper;
 import io.jsonwebtoken.Claims;
@@ -30,6 +29,9 @@ public class HomeController {
 
     @Autowired
     HttpServletRequest httpServletRequest;
+
+    @Autowired
+    ApplicationExceptionHandler applicationExceptionHandler;
 
 //    @Autowired
 //    HttpHeaders httpHeaders;
@@ -152,6 +154,11 @@ public class HomeController {
 //        httpServletRequest.getHeaders()
         System.out.println(httpServletRequest.getHeader("random"));
 
+        if(10>1) {
+            throw new ApplicationException("test", new ApiValidationException("stuff", "nonsense"));
+        }
+
+
         try {
             thrower();
         } catch (Exception Ex) {
@@ -194,7 +201,58 @@ public class HomeController {
         String ansa = dds.getDetails(jSonPath);
         System.out.println("get details called with jSonPath = " + jSonPath + " gets -> " + ansa);
 
+
+        /*
+            Learning point here is that I can get AppExHandler to kick in the way I want it to
+            BUT ONLY if at its heart it has an Exception (as opposed to an RTE
+         */
+//        if (2>1) {
+//
+//            ApiValidationException avEx = new JwtValidationException("key", "value");
+//            Exception exception = new Exception("work, dammit ");
+//
+//
+//            // Can we wrap the RTE in to an Exception
+////            Exception exception = new Exception("work, dammit ",avEx);
+//            Exception fred=(Exception)avEx;
+//
+//            RuntimeException rte=new RuntimeException("As run time exception");
+//
+//            exception.setStackTrace(avEx.getStackTrace());
+//
+////            throw new ApplicationException("jgpsodgaihgpodifodi", fred);
+////            throw new ApplicationException("jgpsodgaihgpodifodi", avEx);
+//            throw new ApplicationException("jgpsodgaihgpodifodi", rte);
+////            throw new ApplicationException("jgpsodgaihgpodifodi", exception);
+////            throw avEx;
+//        }
+
+        try {
+            // Have various exceptions we can throw
+            ApiValidationException avEx = new JwtValidationException("api", "validation exception");
+            RuntimeException rtEx=new RuntimeException("a run time exception");
+            Exception ex = new Exception("a straightforward exception");
+
+            // Create an ApplicationException for each
+            ApplicationException appAvEx = new ApplicationException("contains avEx",avEx);
+            ApplicationException appRTE = new ApplicationException("contains rtEx",rtEx);
+            ApplicationException appEx = new ApplicationException("contains ex",ex);
+
+            if(2>1) {
+                throw (rtEx);
+            }
+
+        } catch (ApiValidationException avEx) {
+            // Just rethrow
+            throw(avEx);
+        } catch (ApplicationException aEx) {
+            throw(aEx);
+        } catch (Exception ex) {
+            throw(new ApplicationException("<interaction id goes here>",ex));
+        }
+
         return ansa;
+
     }
 
     // Headers??
@@ -220,6 +278,38 @@ public class HomeController {
         System.out.println(" check -> " + aEx.getApiErrors().size());
 
         HttpMessageNotReadableException e=new HttpMessageNotReadableException("");
+
+
+        // Interested in what handler
+        if (2>1) {
+
+            ApiValidationException avEx = new JwtValidationException("key", "value");
+            Exception exception = new Exception("work, dammit ");
+            throw new ApplicationException("jgpsodgaihgpodifodi", exception);
+
+        }
+
+        if(2>1) {
+
+            try {
+
+//                int i=1/0;
+//                throw new JwtValidationException("key", "value");
+
+            } catch (ApiValidationException ex) {
+                // Want the exception to get to the AdviceStuff, so rethrow it
+                System.out.println(e.getMessage());
+                throw (ex);
+//            } catch (Exception e) {
+//
+//                System.out.println("Handling it here");
+//                System.out.println(e.getMessage());
+
+            }
+        }
+
+
+
 
         if(apiErrors.size()>0){
             throw new ApiValidationException(apiErrors);
