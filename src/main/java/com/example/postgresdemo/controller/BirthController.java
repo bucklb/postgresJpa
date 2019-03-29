@@ -13,6 +13,7 @@ import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.example.postgresdemo.exception.ApiValidationException;
 import com.example.postgresdemo.exception.ApplicationException;
+import com.example.postgresdemo.exception.BBException;
 import com.example.postgresdemo.exception.JwtValidationException;
 import com.example.postgresdemo.model.BirthCaseEntity;
 import com.example.postgresdemo.model.EnrichmentEntity;
@@ -95,6 +96,12 @@ public class BirthController implements BirthCasesApi {
         System.out.println(httpServletRequest.getHeader("random"));
         System.out.println(httpServletRequest.getHeader("other"));
         System.out.println("=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+");
+
+
+        if(2>12) {
+            throw new ApiValidationException("key", "value");
+        }
+
 
 
         HttpStatus httpStatus=null;

@@ -20,24 +20,18 @@ import java.util.List;
 @RestControllerAdvice
 @Service
 public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler {
-    //public class ApplicationExceptionHandler  {
-//    private static BspmLogger bspmLogger = BspmLogger.getLogger(ApplicationExceptionHandler.class);
-    Logger logger = LoggerFactory.getLogger("exception");
 
-    // TODO : put these in a dedicated constants class
-    public static final String INTERACTION_ID = "interactionId";
+    // Might be better defined in more central location
     public static final String UNEXPECTED_ERROR = "Unexpected Error";
 
+//    @Autowired
+//    public ApplicationExceptionHandler(){
+//    }
 
-    private MessageSource messageSource;
 
-    @Autowired
-    public ApplicationExceptionHandler(MessageSource messageSource) {
-        this.messageSource = messageSource;
-    }
 
+    // Create a vestigal ApiError object & pass it back
     @ExceptionHandler(ApplicationException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<Object> processApplicationException(ApplicationException ex) {
 
         // Generate a standard response
@@ -47,14 +41,29 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
         return new ResponseEntity<>(apiErrorsList, ex.getHeaders(), ex.getStatus() );
     }
 
+    // This will handle any CCException (unless we choose to write a dedicated flavour)
+    // Just pass back the
     @ExceptionHandler(BBException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Object> processBBException(BBException ex) {
 
         return new ResponseEntity<>(ex.getApiErrors(), ex.getHeaders(), ex.getStatus());
     }
 
+    @ExceptionHandler(ApiValidationException.class)
+    public ResponseEntity<Object> processApiValidationException(ApiValidationException ex) {
 
+        System.out.println(ex.getApiErrors() == null);
+        System.out.println(ex.getHeaders() == null);
+        System.out.println(ex.getStatus() == null);
+
+        System.out.println(ex.getHeaders().size());
+
+        HttpHeaders h = ex.getHeaders();
+        HttpHeaders hh = new HttpHeaders();
+
+//        return new ResponseEntity<>(ex.getApiErrors(), ex.getHeaders(), ex.getStatus());
+        return new ResponseEntity<>(ex.getApiErrors(), hh, ex.getStatus());
+    }
 
 
 

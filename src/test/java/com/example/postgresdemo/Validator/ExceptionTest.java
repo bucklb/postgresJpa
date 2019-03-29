@@ -2,9 +2,7 @@ package com.example.postgresdemo.Validator;
 
 
 import com.example.postgresdemo.controller.BirthController;
-import com.example.postgresdemo.exception.ApiError;
-import com.example.postgresdemo.exception.ApiErrorHandler;
-import com.example.postgresdemo.exception.ApiValidationException;
+import com.example.postgresdemo.exception.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,11 +16,13 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.dwp.tuo.gen.domain.BirthCase;
 import uk.gov.dwp.tuo.gen.domain.BirthCaseEnrichment;
 import uk.gov.dwp.tuo.gen.domain.OrganisationsToInformResponse;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -55,13 +55,17 @@ public class ExceptionTest {
     @Mock
     private MessageSource messageSource;
 
+    @Mock
+    private HttpServletRequest httpServletRequest;
+
     // Make sure the MVC is setup and has our controller in place
     @Before
     public void setup() {
         // NOTE - in order to get the advice MUST SPECIFY IT with the builder
         MockitoAnnotations.initMocks(this);
         this.mockMvc = MockMvcBuilders.standaloneSetup(this.birthController)
-                .setControllerAdvice(new ApiErrorHandler(messageSource))
+                .setControllerAdvice(new ApiErrorHandler(messageSource),
+                        new ApplicationExceptionHandler())
                 .build();
     }
 
@@ -86,14 +90,17 @@ public class ExceptionTest {
         String input = new ObjectMapper().writeValueAsString(bce);
 
         // Hit the endpoint we mocked out & see if we get back the values we set up in the exception
-        MvcResult result = mockMvc.perform(post("/birth-cases/69/enrichment")
-                .content(input).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+        MvcResult result = mockMvc.perform(
+                post("/birth-cases/69/enrichment")
+                .content(input).contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON).header("interactionId","id")
+        )
                 .andExpect(status().isBadRequest()).andReturn();
         ArrayList<ApiError> apiErrors = getOrderedApiErrorsFromMvcResponse(result.getResponse());;
 
-        System.out.println(apiErrors.size());
-        System.out.println(apiErrors.get(0).getField());
-        System.out.println(apiErrors.get(0).getLocalizedErrorMessage());
+//        System.out.println(apiErrors.size());
+//        System.out.println(apiErrors.get(0).getField());
+//        System.out.println(apiErrors.get(0).getLocalizedErrorMessage());
     }
 
 
@@ -106,12 +113,13 @@ public class ExceptionTest {
         avEx.getApiErrors().add(new ApiError("key","value"));
 
         // Not sure which is better, if either ...
-//        doThrow(avEx).when(birthController).birthCasesBirthCaseIdGet( 69l );
-        willThrow(avEx).given(birthController).birthCasesBirthCaseIdGet(69l);
+        doThrow(avEx).when(birthController).birthCasesBirthCaseIdGet( 69L );
+//        willThrow(avEx).given(birthController).birthCasesBirthCaseIdGet(69l);
 
         // Hit the endpoint we mocked out & see if we get back the values we set up in the exception
         MvcResult result = mockMvc.perform(get("/birth-cases/69"))
-                .andExpect(status().isBadRequest()).andReturn();
+                .andExpect(status().isBadRequest())
+                .andReturn();
         ArrayList<ApiError> apiErrors = getOrderedApiErrorsFromMvcResponse(result.getResponse());;
 
         // Expect to get bak the list we put in when creating our exception

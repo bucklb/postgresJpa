@@ -13,30 +13,37 @@ public class BBException extends ApplicationException {
 
     // Probably a good idea to have the status rather closer to the exception (rather than in the handler itself)
     private List<ApiError> apiErrors;
+    public List<ApiError> getApiErrors() { return apiErrors; }
+
+    @Override   // if not overridden then will be raised with 500
+    public HttpStatus getStatus() { return status; }
     private HttpStatus status = HttpStatus.BAD_REQUEST;
 
-    public List<ApiError> getApiErrors() { return apiErrors; }
-    public void setApiErrors(List<ApiError> apiErrors) { this.apiErrors = apiErrors; }
+    // TODO : what happens if we give it a null apiError list ???
 
-    @Override
-    public HttpStatus getStatus() { return status; }
-
-    // Construct with errors
+    /*
+        Error list should be enough, without any extra explanation
+     */
     public BBException(List<ApiError> apiErrors) {
         super("apiValidation");   // is this good enough or do we need the HttpInputMessage too??
         this.apiErrors=apiErrors;
     }
 
-    // Allow caller to be spared the pain of creating an arrayList for a single message
+    /*
+        Allow caller to be spared the pain of creating an arrayList for a single error/message
+     */
     public BBException(String fieldName, String fieldMessage) {
         super("apiValidation");
         this.apiErrors = new ArrayList<>();
         this.apiErrors.add(new ApiError(fieldName,fieldMessage));
     }
 
-    // Expect this to be called from a controller and just add the interactionId
+    /*
+        Expect this to be called from a controller and just add the interactionId for further transmission
+    */
     public BBException(HttpServletRequest httpServletRequest, BBException e) {
         super(httpServletRequest, e);
-        this.apiErrors=e.getApiErrors();
+        this.apiErrors = e.getApiErrors();
     }
+
 }

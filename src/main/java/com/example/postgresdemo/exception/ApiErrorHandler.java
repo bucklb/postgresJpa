@@ -89,18 +89,6 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
         return responseEntity;
     }
 
-    // Will have apiErrors baked in
-    private ResponseEntity<Object> handleApiValidationException(ApiValidationException ex,
-                                                                HttpHeaders headers,
-                                                                HttpStatus status,
-                                                                WebRequest request) {
-        if( JwtValidationException.class.getName().equals( ex.getClass().getName()) ){
-            // TODO : should this be elsewhere ??  Jwt checks raise bad request (via ApiValEx) or forbidden (via JwtValEx)
-            status = HttpStatus.FORBIDDEN;
-        }
-        ResponseEntity<Object> responseEntity = createResponseEntity(ex.getApiErrors(), headers, status, request);
-        return responseEntity;
-    }
 
 
     @Override
@@ -111,11 +99,11 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
 
 
     // If looking to add in JwtValidation, so loosen the checks a tad ...
-    if ( ex instanceof ApiValidationException ) {
-//    if( ApiValidationException.class.getName().equals( ex.getClass().getName()) ){
-        // One of ours
-        return handleApiValidationException((ApiValidationException)ex,headers,status,request);
-    } else {
+//    if ( ex instanceof ApiValidationException ) {
+////    if( ApiValidationException.class.getName().equals( ex.getClass().getName()) ){
+//        // One of ours
+//        return handleApiValidationException((ApiValidationException)ex,headers,status,request);
+//    } else {
         // Vanilla
         insertHeaders(request, headers);
 
@@ -128,7 +116,7 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
 //        bspmLogger.error("handleHttpMessageNotReadable", null, request.getHeader(Constants.INTERACTION_ID), apiErrorsList);
 
         return responseEntity;
-    }
+//    }
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.example.postgresdemo;
 import com.example.postgresdemo.controller.HomeController;
 import com.example.postgresdemo.service.JWTHelper;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
@@ -15,6 +16,9 @@ import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 //@SpringBootTest
 public class HomeControllerTests {
 
+    @Mock
+    JWTHelper mockHelper;
+
     @Test
     public void NodAndSmile(){
 
@@ -26,6 +30,7 @@ public class HomeControllerTests {
 
         // Create the test controller outside the "given" command such that we can inject a mocked service/repo
         HomeController hc = new HomeController();
+
 
         // Without authentication an ApiValidationException gets thrown (and converted to a 400 response by default)
         given().

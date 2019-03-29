@@ -232,6 +232,7 @@ public class HomeController {
             ArrayList<ApiError> apiErrors = new ArrayList<>();
             apiErrors.add(new ApiError("one","1"));
             apiErrors.add(new ApiError("two","too"));
+//            CCException ccEx = new CCException(new ArrayList<ApiError>());
             CCException ccEx = new CCException(apiErrors);
             BBException bbEx = new BBException(apiErrors);
 //            ApiValidationException avEx = new JwtValidationException("api", "validation exception");
@@ -254,9 +255,9 @@ public class HomeController {
         } catch (ApiValidationException avEx) {
             // Just rethrow
             throw(avEx);
-//        } catch (CCException ex) {
-//            // Throw it again but with the servlet (and headers)
-//            throw(new CCException(httpServletRequest, ex));
+        } catch (CCException ex) {
+            // Throw it again but with the servlet (and headers)
+            throw(new CCException(httpServletRequest, ex));
         } catch (BBException ex) {
             // Throw it again but with the servlet (and headers)
             throw(new BBException(httpServletRequest, ex));
