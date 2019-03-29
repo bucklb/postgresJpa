@@ -14,7 +14,7 @@ public class OtherBeanPropertyTest {
 
     // https://stackoverflow.com/questions/13764280/how-do-i-exclude-fields-with-jackson-not-using-annotations
     //
-    @Test
+//    @Test
     public void test() throws Exception {
         ObjectMapper om = new ObjectMapper();
         om.setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -36,7 +36,7 @@ public class OtherBeanPropertyTest {
 //        );
     }
 
-    @Test
+//    @Test
     public void testToo() throws Exception{
         BigDummy bd=new BigDummy();
         bd.testMe();

@@ -51,7 +51,7 @@ public class reflectionTests {
     }
 
     // Only reveals PUBLIC fields, and text isn't
-    @Test
+//    @Test
     public void reflectThree() throws Exception {
         Answer dummy = new Answer();
         Field f = dummy.getClass().getField("text");
@@ -60,7 +60,7 @@ public class reflectionTests {
     }
 
     // Gets the field, but not its value
-    @Test
+//    @Test
     public void reflectFour() throws Exception {
         Dummy dummy = new Dummy();
         Field f = dummy.getClass().getDeclaredField("forename");

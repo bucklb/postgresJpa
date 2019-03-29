@@ -1,41 +1,75 @@
 package com.example.postgresdemo.exception;
 
-import net.bytebuddy.implementation.bytecode.Throw;
-import org.omg.SendingContext.RunTime;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 
-/**
- * Allow interaction id to be part of exceptions
+import javax.servlet.http.HttpServletRequest;
+
+/*
+    Want a basic mechanism to handle our errors.  If codegen allowed Exception(s) might be better to use checked Exceptions
  */
-//public class ApplicationException extends Exception {
-    public class ApplicationException extends RuntimeException {
+public class ApplicationException extends RuntimeException {
+
+    public static final String INTERACTION_ID = "interactionId";
+
+    // Will generally want this to be overridden as we progress through the profile
+    public HttpStatus getStatus() { return status; }
+    private HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 
     private String interactionId;
+    public String getInteractionId() { return interactionId; }
 
 
+    /*
+        If we don't get given an interaction id then look at grabbing from headers (if any) auto-injected for us
+     */
+    private void setInteractionIdFromHeader(HttpServletRequest httpServletRequest) {
+        if( httpServletRequest != null ){
+            String id = httpServletRequest.getHeader(INTERACTION_ID);
+            this.interactionId = id;
+        }
+    }
+
+    /*
+        Might be that we want many inheritors to get the interaction id
+     */
+    public HttpHeaders getHeaders() {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(INTERACTION_ID, interactionId);
+        return httpHeaders;
+    }
+
+    /*
+        Allow id to be passed in explicitly
+     */
     public ApplicationException(String interactionId, Throwable e) {
         super(e);
-        setInteractionId(interactionId);
-    }
-
-    //
-//    // Need to have a (cheked) exception at core in order for Handler to work as expected.
-//    // If we get an RTE then morph it in to a "normal" Exception
-//    public ApplicationException(String interactionId, RuntimeException e) {
-//
-//        // Create with blank Exception (or as raw throwable)
-//        super(e);
-////        super(new Exception());
-//        this.setStackTrace(e.getStackTrace());
-//
-//        System.out.println("Taking in RTE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-//        setInteractionId(interactionId);
-//    }
-
-    public String getInteractionId() {
-        return interactionId;
-    }
-
-    public void setInteractionId(String interactionId) {
         this.interactionId = interactionId;
     }
+
+    /*
+        We will look to glean the interaction id from headers (if any)
+     */
+    public ApplicationException(HttpServletRequest httpServletRequest, Throwable e) {
+        super(e);
+        setInteractionIdFromHeader(httpServletRequest);
+    }
+
+    /*
+        We will look to glean the interaction id from headers (if any)
+     */
+    public ApplicationException(HttpServletRequest httpServletRequest, String errMsg) {
+        super(errMsg);
+        setInteractionIdFromHeader(httpServletRequest);
+    }
+
+    /*
+        For when we create something that inherits from us
+    */
+    public ApplicationException(String errMsg) {
+        super(errMsg);
+    }
+
+
 }

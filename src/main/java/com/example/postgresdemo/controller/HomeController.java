@@ -229,26 +229,41 @@ public class HomeController {
 
         try {
             // Have various exceptions we can throw
-            ApiValidationException avEx = new JwtValidationException("api", "validation exception");
+            ArrayList<ApiError> apiErrors = new ArrayList<>();
+            apiErrors.add(new ApiError("one","1"));
+            apiErrors.add(new ApiError("two","too"));
+            CCException ccEx = new CCException(apiErrors);
+            BBException bbEx = new BBException(apiErrors);
+//            ApiValidationException avEx = new JwtValidationException("api", "validation exception");
+            ApiValidationException avEx = new JwtValidationException(apiErrors);
             RuntimeException rtEx=new RuntimeException("a run time exception");
             Exception ex = new Exception("a straightforward exception");
 
             // Create an ApplicationException for each
+            ApplicationException appbbEx = new ApplicationException("contains bbEx", bbEx);
+
             ApplicationException appAvEx = new ApplicationException("contains avEx",avEx);
             ApplicationException appRTE = new ApplicationException("contains rtEx",rtEx);
             ApplicationException appEx = new ApplicationException("contains ex",ex);
 
             if(2>1) {
-                throw (rtEx);
+                throw (ccEx);
             }
 
+        // General approach will be to throw again, but with "decoration" from the request
         } catch (ApiValidationException avEx) {
             // Just rethrow
             throw(avEx);
-        } catch (ApplicationException aEx) {
-            throw(aEx);
+//        } catch (CCException ex) {
+//            // Throw it again but with the servlet (and headers)
+//            throw(new CCException(httpServletRequest, ex));
+        } catch (BBException ex) {
+            // Throw it again but with the servlet (and headers)
+            throw(new BBException(httpServletRequest, ex));
+//        } catch (ApplicationException aEx) {
+//            throw(aEx);
         } catch (Exception ex) {
-            throw(new ApplicationException("<interaction id goes here>",ex));
+            throw(new ApplicationException(httpServletRequest,ex));
         }
 
         return ansa;

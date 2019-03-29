@@ -20,9 +20,6 @@ public class ApiValidationException extends HttpMessageNotReadableException {
     public List<ApiError> getApiErrors() {        return apiErrors;    }
     public void setApiErrors(List<ApiError> apiErrors) {        this.apiErrors = apiErrors;    }
 
-    @Autowired
-    HttpInputMessage httpInputMessage;
-
     // Construct with errors
     public ApiValidationException(List<ApiError> apiErrors) {
         super("exceptional");   // is this good enough or do we need the HttpInputMessage too??
