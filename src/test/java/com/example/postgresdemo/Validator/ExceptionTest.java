@@ -128,6 +128,31 @@ public class ExceptionTest {
         Assert.assertEquals("value", apiErrors.get(0).getLocalizedErrorMessage());
     }
 
+    @Test
+    public void testJwtException() throws Exception {
+        // Just want to provoke the controller to throw an exception.  We ought to be getting a response with expected errors back if advice works
+        JwtValidationException avEx=new JwtValidationException(new ArrayList<ApiError>());
+        avEx.getApiErrors().add(new ApiError("key","value"));
+
+        // Not sure which is better, if either ...
+        doThrow(avEx).when(birthController).birthCasesBirthCaseIdGet( 69L );
+//        willThrow(avEx).given(birthController).birthCasesBirthCaseIdGet(69l);
+
+        // Hit the endpoint we mocked out & see if we get back the values we set up in the exception
+        MvcResult result = mockMvc.perform(get("/birth-cases/69"))
+                .andExpect(status().isForbidden())
+                .andReturn();
+        ArrayList<ApiError> apiErrors = getOrderedApiErrorsFromMvcResponse(result.getResponse());;
+
+        // Expect to get bak the list we put in when creating our exception
+        Assert.assertEquals(1, apiErrors.size());
+        Assert.assertEquals("key",   apiErrors.get(0).getField());
+        Assert.assertEquals("value", apiErrors.get(0).getLocalizedErrorMessage());
+    }
+
+
+
+
     // Put response in form of an ORDERED list of ApiErrors.  Possibly overkill, but code was available
     private ArrayList<ApiError> getOrderedApiErrorsFromMvcResponse(MockHttpServletResponse mvcResponse) throws Exception {
         ArrayList<ApiError> apiErrors = new ArrayList<>();
@@ -146,4 +171,8 @@ public class ExceptionTest {
 
         return apiErrors;
     }
+
+
+
+
 }
