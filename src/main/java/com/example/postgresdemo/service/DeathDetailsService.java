@@ -4,6 +4,8 @@ import com.example.postgresdemo.exception.*;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -19,6 +21,8 @@ import java.util.ArrayList;
 
 @Component
 public class DeathDetailsService {
+
+    Logger logger = LoggerFactory.getLogger(DeathDetailsService.class);
 
     private static String json;
     private static File jsonFile = new File("src/main/resources/death.json");
@@ -134,6 +138,17 @@ public class DeathDetailsService {
 
         ApplicationException appjwExToo = new ApplicationException("contains jwExToo",jwExToo);
 
+
+
+        // Down a rabbit hole to see what stack trace looks like ...
+        try {
+            thrower_i();
+        } catch (Exception e) {
+            logger.info("caught in service", e);
+        }
+
+
+
         try {
 
             // No need for break
@@ -177,8 +192,28 @@ public class DeathDetailsService {
 
     }
 
+    private void thrower_i() {
+        thrower_ii();
+    }
 
+    private void thrower_ii() {
+        thrower_iii();
+    }
+    private void thrower_iii() {
+        thrower_iv();
+    }
+    private void thrower_iv() {
+        thrower_v();
+    }
+    private void thrower_v() {
+        // generate an exception somehow
 
+        if ( 2>1 ) {
+            throw new JwtValidationException("thrown", "in thrower v");
+        }
+
+        System.out.println(2/0);
+    }
 
 
 
