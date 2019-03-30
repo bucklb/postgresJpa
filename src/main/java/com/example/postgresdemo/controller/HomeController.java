@@ -1,36 +1,37 @@
 package com.example.postgresdemo.controller;
 
-import com.example.postgresdemo.exception.ApiError;
-import com.example.postgresdemo.exception.ApiValidationException;
+import com.example.postgresdemo.exception.*;
 import com.example.postgresdemo.service.DeathDetailsService;
-import io.swagger.annotations.ApiParam;
-import org.mapstruct.Context;
+import com.example.postgresdemo.service.JWTHelper;
+import io.jsonwebtoken.Claims;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.dwp.tuo.gen.domain.BirthCase;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 @RequestMapping("")
 @RestController
 public class HomeController {
 
+    Logger logger = LoggerFactory.getLogger(BirthController.class);
+
     @Autowired
     DeathDetailsService dds;
 
+    // A copy of the request will allow us to check headers passed in
     @Autowired
     HttpServletRequest httpServletRequest;
 
@@ -51,11 +52,69 @@ public class HomeController {
         httpServletResponse.setStatus(REDIRECT_CDE);
     }
 
+    private void zipThruRequestHeaders(HttpServletRequest request){
+        System.out.println("Headers ______________________");
+        Enumeration headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String key = (String) headerNames.nextElement();
+            String value = request.getHeader(key);
+
+            System.out.println("Header : " + key + "   value : " + value);
+
+//            map.put(key, value);
+        }
+        System.out.println("Headers -=-=-=-=-=-=-=-=-=-=-=-");
+    }
+
+
     // To fit in, continue the ping-pong convention
     @GetMapping("/ping")
-    public String getPing() throws ApiValidationException {
+    public String getPing(HttpServletRequest request) throws ApiValidationException {
 
-        if(2>1) {
+        String token="";
+        System.out.println("Ping has been hit");
+
+        // Want to run through headers we may have got. But not necessarily ALL the time
+        if (10>1) { zipThruRequestHeaders(request); }
+
+
+        // Devolve request checking to JwtHelper
+        JWTHelper.checkRequestAuthorisation(request);
+
+
+
+
+
+
+
+
+        // One we care about is the authorization (for now)
+        token = request.getHeader("authorization");
+        System.out.println(token);
+
+        if( token != null ) {
+
+            System.out.println("authorisation token = " + token);
+
+            // Need to decide on a pattern.  Lots of things suggest preceded by Bearer ...
+            String[] tokens = token.split(" ");
+            token = tokens[tokens.length-1];
+
+            // We should now have the real token in hand. Query it
+            Claims c = JWTHelper.parseJWT(token);
+
+            String nm =  c.get("name",String.class);
+            System.out.println("Name from token is : " + nm);
+
+        } else {
+            System.out.println("No authorization token found");
+
+        }
+
+
+
+
+        if(0>1) {
 
             // TODO : could we throw a ResponseEntityException (so it gets picked up by the stuff that handles other validation)
             // throw new MethodArgumentNotValidException();
@@ -64,7 +123,7 @@ public class HomeController {
 //            throw new ApiValidationException("registration details", "must not be empty array");
         }
 
-        return "pong";
+        return "pong" + token;
     }
 
 
@@ -93,6 +152,11 @@ public class HomeController {
 
 //        httpServletRequest.getHeaders()
         System.out.println(httpServletRequest.getHeader("random"));
+
+        if(10>1) {
+            throw new ApplicationException("test", new ApiValidationException("stuff", "nonsense"));
+        }
+
 
         try {
             thrower();
@@ -133,10 +197,42 @@ public class HomeController {
     @GetMapping("/details/multi")
     public String getMulti(@RequestHeader(value="jSonPath") String jSonPath){
 
-        String ansa = dds.getDetails(jSonPath);
-        System.out.println("get details called with jSonPath = " + jSonPath + " gets -> " + ansa);
+        String ansa = null;
+        if(2>10) {
+            // What the call used to do
+            ansa = dds.getDetails(jSonPath);
+            System.out.println("get details called with jSonPath = " + jSonPath + " gets -> " + ansa);
+
+        } else {
+            // More descriptive name
+            String sExTyp = jSonPath;
+
+
+
+
+
+        /*
+            Learning point here is that I can get AppExHandler to kick in the way I want it to
+            BUT ONLY if at its heart it has an Exception (as opposed to an RTE
+         */
+
+            try {
+                // Should throw the exception type we want ...
+                dds.thrower(sExTyp);
+
+            } catch (Exception ex) {
+                // New approach to exceptions means we just need this one catch to (re)throw
+                // and append anything of use from the headers (like interteractionId)
+                logger.info("some log stuff",ex);
+                throw(new ApplicationException(httpServletRequest,ex));
+            }
+        }
+
+
+
 
         return ansa;
+
     }
 
     // Headers??
@@ -162,6 +258,38 @@ public class HomeController {
         System.out.println(" check -> " + aEx.getApiErrors().size());
 
         HttpMessageNotReadableException e=new HttpMessageNotReadableException("");
+
+
+        // Interested in what handler
+        if (2>1) {
+
+            ApiValidationException avEx = new JwtValidationException("key", "value");
+            Exception exception = new Exception("work, dammit ");
+            throw new ApplicationException("jgpsodgaihgpodifodi", exception);
+
+        }
+
+        if(2>1) {
+
+            try {
+
+//                int i=1/0;
+//                throw new JwtValidationException("key", "value");
+
+            } catch (ApiValidationException ex) {
+                // Want the exception to get to the AdviceStuff, so rethrow it
+                System.out.println(e.getMessage());
+                throw (ex);
+//            } catch (Exception e) {
+//
+//                System.out.println("Handling it here");
+//                System.out.println(e.getMessage());
+
+            }
+        }
+
+
+
 
         if(apiErrors.size()>0){
             throw new ApiValidationException(apiErrors);

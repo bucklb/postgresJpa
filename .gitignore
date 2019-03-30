@@ -1,6 +1,9 @@
 /target/
 !.mvn/wrapper/maven-wrapper.jar
 
+c:/windows/temp/logging.log
+C:\\Windows\\Temp\\logging.log
+
 ### STS ###
 .apt_generated
 .classpath

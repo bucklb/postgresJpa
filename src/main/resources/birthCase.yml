@@ -32,11 +32,6 @@ paths:
         required: true
         schema:
           $ref: "#/definitions/BirthCase"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/definitions/BirthCase"
       responses:
         201:
           description: "Successful operation, returns link to the newly created Birth Report."
@@ -157,24 +152,50 @@ definitions:
     type: "object"
     required:
       - council
+      - status
     properties:
       council:
+        pattern: "^[A-Za-z ,-]+$"
         type: "string"
-      organisationsToInform:
+      organisationsToInformResponse:
         type: "array"
+        minItems: 1
         items:
           $ref: "#/definitions/OrganisationsToInformResponse"
+      status:
+        type: "string"
+        enum:
+          - black
+          - white
+          - red
+          - green
+          - blue
 
   OrganisationsToInformResponse:
     type: "object"
     properties:
       organisation:
+        pattern: "^[A-Za-z ,-]+$"
         type: "string"
       response:
         type: "boolean"
+      status:
+        type: "string"
+        enum:
+          - black
+          - white
+          - red
+          - green
+          - blue
 
   BirthCaseStatus:
     type: "object"
     properties:
       status:
         type: "string"
+        enum:
+          - black
+          - white
+          - red
+          - green
+          - blue

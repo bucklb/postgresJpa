@@ -15,10 +15,8 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
+import java.lang.reflect.Field;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -112,7 +110,8 @@ public class ValidatorTests {
     private BirthCaseEnrichment birthCaseEnrichment(){
         BirthCaseEnrichment bce = new BirthCaseEnrichment();
         bce.setCouncil("county");
-        bce.setOrganisationsToInform(new ArrayList<OrganisationsToInformResponse>());
+//        bce.setOrganisationsToInform(new ArrayList<OrganisationsToInformResponse>());
+        bce.setOrganisationsToInformResponse(new ArrayList<OrganisationsToInformResponse>());
         return bce;
     }
 
@@ -124,44 +123,54 @@ public class ValidatorTests {
         assert(bce.equals(deserialize(serialize(bce))));
     }
 
-    // Check that deserialising duff data will flag issues
-    @Test
-    public void testValidatorPostSerialisation() {
-        BirthCaseEnrichment bce=birthCaseEnrichment();
-        // Bugger up the enrichment
-        bce.setCouncil(null);
-
-        String bceStr = serialize(bce);
-        BirthCaseEnrichment bceObj = deserialize(bceStr);
-
-        BirthMapper bM = new BirthMapper();
-        BirthCaseEnrichment b=bM.getValidatedFromString(bceStr);
-
-        assertEquals(b,bce);
-
-
-        Set<ConstraintViolation<BirthCaseEnrichment>> v = validator.validate(bceObj);
-//        System.out.println(v.size());
-
-        // Expect one problem
-        assertEquals( 1, v.size() );
-
-        // Expect that we can generate an exception
-        ApiValidationException avEx = parseViolations( v );
-        assertNotNull(avEx);
-
-        List<ApiError> apiErrors = avEx.getApiErrors();
-        assertEquals(1,apiErrors.size());
-
-        assert(apiErrors.get(0).getField().contains("council"));
-        assert(apiErrors.get(0).getLocalizedErrorMessage().contains("null"));
-
-
-    }
-
-
-
-
+    // This is really BirthMapper testing
+//    // Check that deserialising duff data will flag issues
+//    @Test
+//    public void testValidatorPostSerialisation() {
+//        BirthCaseEnrichment bce=birthCaseEnrichment();
+//        // Bugger up the enrichment
+//        bce.setCouncil(null);
+//
+//        String bceStr = serialize(bce);
+//        BirthCaseEnrichment bceObj = deserialize(bceStr);
+//
+//        BirthMapper bM = new BirthMapper();
+//
+//        BirthCaseEnrichment b = null;
+//        try {
+//            b = bM.getValidatedFromString(bceStr);
+//        } catch (ApiValidationException ex){
+//            System.out.println("Exception in getValidated");
+//
+//            // Should have an expected set of issues
+//
+//
+//
+//        }
+//
+//
+//
+//        assertEquals(b,bce);
+//
+//
+//        Set<ConstraintViolation<BirthCaseEnrichment>> v = validator.validate(bceObj);
+////        System.out.println(v.size());
+//
+//        // Expect one problem
+//        assertEquals( 1, v.size() );
+//
+//        // Expect that we can generate an exception
+//        ApiValidationException avEx = parseViolations( v );
+//        assertNotNull(avEx);
+//
+//        List<ApiError> apiErrors = avEx.getApiErrors();
+//        assertEquals(1,apiErrors.size());
+//
+//        assert(apiErrors.get(0).getField().contains("council"));
+//        assert(apiErrors.get(0).getLocalizedErrorMessage().contains("null"));
+//
+//
+//    }
 
 
     // This might be fun with the complex regex we use ??
@@ -179,18 +188,95 @@ public class ValidatorTests {
 
         // Could look to build this in to ApiErrors??
         for( ConstraintViolation c: v){
-            String field= c.getPropertyPath().toString() + " - " + c.getInvalidValue();
+            String field= c.getPropertyPath().toString() + " : " + c.getInvalidValue();
             System.out.println(field);
             System.out.println(c.getMessage());
         }
 
         System.out.println(v.size());
+    }
+
+
+
+    @Test
+    public void testBCEandEnum() throws Exception{
+
+        BirthCaseEnrichment bce= birthCaseEnrichment();
+        bce.setStatus(BirthCaseEnrichment.StatusEnum.BLACK);
+
+        OrganisationsToInformResponse o = new OrganisationsToInformResponse();
+//        o.setStatus(OrganisationsToInformResponse.StatusEnum.BLUE);
+//        bce.getOrganisationsToInform().add(o);
+        bce.getOrganisationsToInformResponse().add(o);
+
+
+        String bceStr=serialize(bce);
+//        bceStr=bceStr.replace("black","despair");
+
+
+
+        BirthCaseEnrichment bc2 = deserialize(bceStr);
+
+        Set<ConstraintViolation<BirthCaseEnrichment>> v = validator.validate(bc2);
+
+        parseViolations(v);
+
+        // Could look to build this in to ApiErrors??
+        for( ConstraintViolation c: v){
+
+            String field= c.getPropertyPath().toString() + " - " + c.getInvalidValue();
+            System.out.println(field);
+            System.out.println(c.getMessage());
+
+            // base bit
+            String clsName=c.getRootBeanClass().getName();
+            String fldName=c.getPropertyPath().toString();
+            System.out.println(clsName);
+
+            // Try and deal with nesting.  Assumption of flat domain structure !! If none, then do nothing
+            String[] fields=fldName.split("\\.");
+            if(fields.length >1 ){
+
+                // Lose the last part of the clsName (as we need to replace it with something based on penultimate bit of fields)
+                String[] clsBits=clsName.split("\\.");
+                clsName="";
+                for(int i=0; i < clsBits.length -1 ; i++){
+                    clsName=clsName+clsBits[i]+".";
+                }
+                System.out.println(clsName);
+
+                // Want the root of penultimate field (lose any "")
+                String[] fldBits=fields[fields.length-2].split("\\[");
+
+                clsName = clsName + fldBits[0];
+                fldName = fields[fields.length-1];
+                System.out.println(clsName + "--" + fldName);
+
+                OrganisationsToInformResponse xyz=new OrganisationsToInformResponse();
+//                System.out.println(xyz.getClass().getName());
+                clsName=xyz.getClass().getName();
+                System.out.println(clsName + "--" + fldName);
+            }
+
+
+            // Link to stuff
+            System.out.println("---->" + clsName + "<->" + fldName);
+            System.out.println(c.getRootBeanClass().getName() + " >>> " + fldName);
+
+            Class<?> C = Class.forName(clsName);
+            Field f = C.getDeclaredField(fldName);
+            if(f.getType().isEnum()) {
+                System.out.println(Arrays.asList(f.getType().getEnumConstants()));
+            }
+
+        }
 
 
 
 
 
     }
+
 
 
 

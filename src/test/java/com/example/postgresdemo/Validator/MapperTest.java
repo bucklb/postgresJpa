@@ -45,7 +45,15 @@ public class MapperTest {
     private BirthCaseEnrichment birthCaseEnrichment(){
         BirthCaseEnrichment bce = new BirthCaseEnrichment();
         bce.setCouncil("county");
-        bce.setOrganisationsToInform(new ArrayList<OrganisationsToInformResponse>());
+        bce.setStatus( BirthCaseEnrichment.StatusEnum.BLACK );
+//        bce.setOrganisationsToInform(new ArrayList<OrganisationsToInformResponse>());
+        bce.setOrganisationsToInformResponse(new ArrayList<OrganisationsToInformResponse>());
+        OrganisationsToInformResponse otir=new OrganisationsToInformResponse();
+        otir.setStatus(OrganisationsToInformResponse.StatusEnum.BLACK);
+        otir.setOrganisation("org");
+        otir.setResponse(true);
+
+        bce.getOrganisationsToInformResponse().add(otir);
         return bce;
     }
 
@@ -110,7 +118,7 @@ public class MapperTest {
 
         // Object should fail as council was null
         assertNotNull( apiErrors );
-        assertEquals(1,apiErrors.size());
+        assertEquals(2,apiErrors.size());
         assert(apiErrors.get(0).getLocalizedErrorMessage().contains("null"));
     }
 
@@ -149,8 +157,9 @@ public class MapperTest {
             }
         }
 
-        // The object should come through unscathed.  ??Will date formats be a problem?? When passing internally should be dd-MM-yyyy
-        assert( bceObj.equals( bce ) );
+        // readValue would allow duff stuff through, validated call wont
+//        // The object should come through unscathed.  ??Will date formats be a problem?? When passing internally should be dd-MM-yyyy
+//        assert( bceObj.equals( bce ) );
     }
 
     // Enrichment with NULL organisations object
@@ -160,7 +169,8 @@ public class MapperTest {
         // Populate with just council
         bce = new BirthCaseEnrichment();
         bce.setCouncil("district");
-        bce.setOrganisationsToInform(new ArrayList<OrganisationsToInformResponse>());
+//        bce.setOrganisationsToInform(new ArrayList<OrganisationsToInformResponse>());
+        bce.setOrganisationsToInformResponse(new ArrayList<OrganisationsToInformResponse>());
 
         // Experiment with serialisation etc
         ObjectMapper mapper = new ObjectMapper();
@@ -189,8 +199,9 @@ public class MapperTest {
             }
         }
 
-        // The object should come through unscathed.  ??Will date formats be a problem?? When passing internally should be dd-MM-yyyy
-        assert( bceObj.equals( bce ) );
+        // Validating with mapping, so should be raising exception and not passing it through
+//        // The object should come through unscathed.  ??Will date formats be a problem?? When passing internally should be dd-MM-yyyy
+//        assert( bceObj.equals( bce ) );
     }
 
     // Try a vanilla case
@@ -224,6 +235,7 @@ public class MapperTest {
             } catch (ApiValidationException ex) {
                 System.out.println("DEserialisation not so good");
                 System.out.println(ex.getStackTrace());
+
             }
         }
 

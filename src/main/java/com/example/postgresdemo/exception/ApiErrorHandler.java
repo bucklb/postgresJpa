@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.instrument.classloading.jboss.JBossLoadTimeWeaver;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -44,12 +45,18 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
         this.messageSource = messageSource;
     }
 
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers,
                                                                   HttpStatus status,
                                                                   WebRequest request) {
         insertHeaders(request, headers);
+
+        System.out.println("~~~~");
+        System.out.println(ex.getBindingResult().getTarget().getClass().getName());
+        System.out.println("~~~~");
+
 
         BindingResult result = ex.getBindingResult();
         List<FieldError> fieldErrors = result.getFieldErrors();
@@ -82,15 +89,6 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
         return responseEntity;
     }
 
-    // Will have apiErrors baked in
-    private ResponseEntity<Object> handleApiValidationException(ApiValidationException ex,
-                                                                HttpHeaders headers,
-                                                                HttpStatus status,
-                                                                WebRequest request) {
-        System.out.println("Handling apiValidationException !! <<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-        ResponseEntity<Object> responseEntity = createResponseEntity(ex.getApiErrors(), headers, status, request);
-        return responseEntity;
-    }
 
 
     @Override
@@ -99,10 +97,13 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
                                                                   HttpStatus status,
                                                                   WebRequest request) {
 
-    if( ApiValidationException.class.getName().equals( ex.getClass().getName()) ){
-        // One of ours
-        return handleApiValidationException((ApiValidationException)ex,headers,status,request);
-    } else {
+
+    // If looking to add in JwtValidation, so loosen the checks a tad ...
+//    if ( ex instanceof ApiValidationException ) {
+////    if( ApiValidationException.class.getName().equals( ex.getClass().getName()) ){
+//        // One of ours
+//        return handleApiValidationException((ApiValidationException)ex,headers,status,request);
+//    } else {
         // Vanilla
         insertHeaders(request, headers);
 
@@ -115,7 +116,7 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
 //        bspmLogger.error("handleHttpMessageNotReadable", null, request.getHeader(Constants.INTERACTION_ID), apiErrorsList);
 
         return responseEntity;
-    }
+//    }
     }
 
     @Override
@@ -158,8 +159,8 @@ public class ApiErrorHandler extends ResponseEntityExceptionHandler {
 
         for (FieldError fieldError : fieldErrors) {
 
-            System.out.println(resolveLocalizedErrorMessage(fieldError));
-            System.out.println(fieldError.getDefaultMessage());
+//            System.out.println(resolveLocalizedErrorMessage(fieldError));
+//            System.out.println(fieldError.getDefaultMessage());
 
 
             String localizedErrorMessage = resolveLocalizedErrorMessage(fieldError);

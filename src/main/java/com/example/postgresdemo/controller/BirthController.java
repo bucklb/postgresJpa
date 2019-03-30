@@ -11,6 +11,10 @@ import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.example.postgresdemo.exception.ApiValidationException;
+import com.example.postgresdemo.exception.ApplicationException;
+import com.example.postgresdemo.exception.BBException;
+import com.example.postgresdemo.exception.JwtValidationException;
 import com.example.postgresdemo.model.BirthCaseEntity;
 import com.example.postgresdemo.model.EnrichmentEntity;
 import com.example.postgresdemo.repository.BirthRepository;
@@ -94,6 +98,12 @@ public class BirthController implements BirthCasesApi {
         System.out.println("=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+");
 
 
+        if(2>12) {
+            throw new ApiValidationException("key", "value");
+        }
+
+
+
         HttpStatus httpStatus=null;
         BirthCase bc = null;
 
@@ -125,7 +135,11 @@ public class BirthController implements BirthCasesApi {
      * @return
      */
     @Override
-    public ResponseEntity<BirthCase> birthCasesPost( @ApiParam(value = "" ,required=true )  @Valid @RequestBody BirthCase body) {
+    public ResponseEntity<BirthCase> birthCasesPost( @ApiParam(value = "" ,required=true ) @Valid @RequestBody BirthCase body) {
+
+
+
+
 
         System.out.println("=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+");
         System.out.println(httpServletRequest.getHeader("random"));
@@ -207,12 +221,12 @@ public class BirthController implements BirthCasesApi {
             System.out.println(birth.toString());
             System.out.println(bce.toString());
 
-            status.setStatus("Submitted");
+//            status.setStatus("Submitted");
             httpStatus = HttpStatus.OK;
 
         } else {
 
-            status.setStatus("Not found");
+//            status.setStatus("Not found");
             httpStatus = HttpStatus.NOT_FOUND;
         }
 
@@ -290,7 +304,8 @@ public class BirthController implements BirthCasesApi {
                 OrganisationsToInformResponse r=new OrganisationsToInformResponse();
                 r.setOrganisation(enrichment.getOrganisation());
                 r.setResponse(b);
-                bce.addOrganisationsToInformItem(r);
+//                bce.addOrganisationsToInformItem(r);
+                bce.addOrganisationsToInformResponseItem(r);
 
             }
         }
@@ -333,7 +348,8 @@ public class BirthController implements BirthCasesApi {
     private List<EnrichmentEntity> enrichmentEntities (BirthCaseEnrichment birthCaseEnrichment)   {
         ArrayList<EnrichmentEntity> entities = new ArrayList<>();
 
-        for(OrganisationsToInformResponse otir : birthCaseEnrichment.getOrganisationsToInform()) {
+//        for(OrganisationsToInformResponse otir : birthCaseEnrichment.getOrganisationsToInform()) {
+        for(OrganisationsToInformResponse otir : birthCaseEnrichment.getOrganisationsToInformResponse()) {
             entities.add(
                     createEnrichmentEntity(birthCaseEnrichment.getCouncil(), otir.getOrganisation(), otir.isResponse() ) );
         }
@@ -351,8 +367,10 @@ public class BirthController implements BirthCasesApi {
         BirthCaseEnrichment bce = new BirthCaseEnrichment();
 
         bce.setCouncil("municipal");
-        bce.addOrganisationsToInformItem(createOTIR("org1",true));
-        bce.addOrganisationsToInformItem(createOTIR("org2",false));
+//        bce.addOrganisationsToInformItem(createOTIR("org1",true));
+//        bce.addOrganisationsToInformItem(createOTIR("org2",false));
+        bce.addOrganisationsToInformResponseItem(createOTIR("org1",true));
+        bce.addOrganisationsToInformResponseItem(createOTIR("org2",false));
 
         return bce;
     }
