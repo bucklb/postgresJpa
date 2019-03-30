@@ -4,6 +4,8 @@ import com.example.postgresdemo.exception.*;
 import com.example.postgresdemo.service.DeathDetailsService;
 import com.example.postgresdemo.service.JWTHelper;
 import io.jsonwebtoken.Claims;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -24,17 +26,14 @@ import java.util.Enumeration;
 @RestController
 public class HomeController {
 
+    Logger logger = LoggerFactory.getLogger(BirthController.class);
+
     @Autowired
     DeathDetailsService dds;
 
+    // A copy of the request will allow us to check headers passed in
     @Autowired
     HttpServletRequest httpServletRequest;
-
-    @Autowired
-    ApplicationExceptionHandler applicationExceptionHandler;
-
-//    @Autowired
-//    HttpHeaders httpHeaders;
 
 
     // Need to push people to where swagger lives ...
@@ -198,74 +197,39 @@ public class HomeController {
     @GetMapping("/details/multi")
     public String getMulti(@RequestHeader(value="jSonPath") String jSonPath){
 
-        String ansa = dds.getDetails(jSonPath);
-        System.out.println("get details called with jSonPath = " + jSonPath + " gets -> " + ansa);
+        String ansa = null;
+        if(2>10) {
+            // What the call used to do
+            ansa = dds.getDetails(jSonPath);
+            System.out.println("get details called with jSonPath = " + jSonPath + " gets -> " + ansa);
+
+        } else {
+            // More descriptive name
+            String sExTyp = jSonPath;
+
+
+
 
 
         /*
             Learning point here is that I can get AppExHandler to kick in the way I want it to
             BUT ONLY if at its heart it has an Exception (as opposed to an RTE
          */
-//        if (2>1) {
-//
-//            ApiValidationException avEx = new JwtValidationException("key", "value");
-//            Exception exception = new Exception("work, dammit ");
-//
-//
-//            // Can we wrap the RTE in to an Exception
-////            Exception exception = new Exception("work, dammit ",avEx);
-//            Exception fred=(Exception)avEx;
-//
-//            RuntimeException rte=new RuntimeException("As run time exception");
-//
-//            exception.setStackTrace(avEx.getStackTrace());
-//
-////            throw new ApplicationException("jgpsodgaihgpodifodi", fred);
-////            throw new ApplicationException("jgpsodgaihgpodifodi", avEx);
-//            throw new ApplicationException("jgpsodgaihgpodifodi", rte);
-////            throw new ApplicationException("jgpsodgaihgpodifodi", exception);
-////            throw avEx;
-//        }
 
-        try {
-            // Have various exceptions we can throw
-            ArrayList<ApiError> apiErrors = new ArrayList<>();
-            apiErrors.add(new ApiError("one","1"));
-            apiErrors.add(new ApiError("two","too"));
-//            CCException ccEx = new CCException(new ArrayList<ApiError>());
-            CCException ccEx = new CCException(apiErrors);
-            BBException bbEx = new BBException(apiErrors);
-//            ApiValidationException avEx = new JwtValidationException("api", "validation exception");
-            ApiValidationException avEx = new JwtValidationException(apiErrors);
-            RuntimeException rtEx=new RuntimeException("a run time exception");
-            Exception ex = new Exception("a straightforward exception");
+            try {
+                // Should throw the exception type we want ...
+                dds.thrower(sExTyp);
 
-            // Create an ApplicationException for each
-            ApplicationException appbbEx = new ApplicationException("contains bbEx", bbEx);
-
-            ApplicationException appAvEx = new ApplicationException("contains avEx",avEx);
-            ApplicationException appRTE = new ApplicationException("contains rtEx",rtEx);
-            ApplicationException appEx = new ApplicationException("contains ex",ex);
-
-            if(2>1) {
-                throw (ccEx);
+            } catch (Exception ex) {
+                // New approach to exceptions means we just need this one catch to (re)throw
+                // and append anything of use from the headers (like interteractionId)
+                logger.info("some log stuff",ex);
+                throw(new ApplicationException(httpServletRequest,ex));
             }
-
-        // General approach will be to throw again, but with "decoration" from the request
-        } catch (ApiValidationException avEx) {
-            // Just rethrow
-            throw(avEx);
-        } catch (CCException ex) {
-            // Throw it again but with the servlet (and headers)
-            throw(new CCException(httpServletRequest, ex));
-        } catch (BBException ex) {
-            // Throw it again but with the servlet (and headers)
-            throw(new BBException(httpServletRequest, ex));
-//        } catch (ApplicationException aEx) {
-//            throw(aEx);
-        } catch (Exception ex) {
-            throw(new ApplicationException(httpServletRequest,ex));
         }
+
+
+
 
         return ansa;
 

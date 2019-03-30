@@ -30,4 +30,11 @@ public class ApiError {
     public void setLocalizedErrorMessage(String localizedErrorMessage) {
         this.localizedErrorMessage = localizedErrorMessage;
     }
+
+    // Aim to get something helpful if someone wants a string (like in exception handling)
+    @Override
+    public String toString() {
+        return "{\"" + this.getField() + "\" : \"" + this.getLocalizedErrorMessage() + "\"}";
+    }
+
 }

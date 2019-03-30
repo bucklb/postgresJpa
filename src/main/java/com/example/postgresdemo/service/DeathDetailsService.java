@@ -1,5 +1,6 @@
 package com.example.postgresdemo.service;
 
+import com.example.postgresdemo.exception.*;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 
 /**
  * Want to have half a play with jsonPath in terms of getting subset(s) of info out from the whole.
@@ -94,6 +96,88 @@ public class DeathDetailsService {
 
         return T;
     }
+
+
+    private ArrayList<ApiError> getApiErrorList(String src){
+        ArrayList<ApiError> apiErrors = new ArrayList<>();
+        apiErrors.add(new ApiError("one",src));
+        apiErrors.add(new ApiError("two","too"));
+        return apiErrors;
+    }
+
+
+    /*
+        Want a vaguely flexible way to test the exception handling
+     */
+    public void thrower(String sExTyp){
+
+        // Have various exceptions we can throw
+
+        // A number of exceptions we might want to throw
+        CCException ccEx = new CCException(getApiErrorList("ccEx"));
+        BBException bbEx = new BBException(getApiErrorList("bbEx"));
+        ApiValidationException avEx = new ApiValidationException(getApiErrorList("avEx"));
+        JwtValidationException jwEx = new JwtValidationException(getApiErrorList("jwEx"));
+        RuntimeException rtEx=new RuntimeException("a run time exception");
+        Exception ex = new Exception("a straightforward exception");
+
+        JwtValidationException jwExToo=new JwtValidationException("some field","some reason");
+
+
+        // Create an ApplicationException from each exception,
+        ApplicationException appbbEx = new ApplicationException("contains bbEx", bbEx);
+        ApplicationException appccEx = new ApplicationException("contains ccEx", ccEx);
+        ApplicationException appavEx = new ApplicationException("contains avEx",avEx);
+        ApplicationException appjwEx = new ApplicationException("contains jwEx",jwEx);
+        ApplicationException apprtEx = new ApplicationException("contains rtEx",rtEx);
+        ApplicationException appEx = new ApplicationException("contains ex",ex);
+
+        ApplicationException appjwExToo = new ApplicationException("contains jwExToo",jwExToo);
+
+        try {
+
+            // No need for break
+            switch (sExTyp) {
+                case "ccEx":
+                    throw ccEx;
+                case "bbEx":
+                    throw bbEx;
+                case "avEx":
+                    throw avEx;
+                case "jwEx":
+                    throw jwEx;
+                case "jwExToo":
+                    throw jwExToo;
+                case "rtEx":
+                    throw rtEx;
+                case "appccEx":
+                    throw appccEx;
+                case "appbbEx":
+                    throw appbbEx;
+                case "appavEx":
+                    throw appavEx;
+                case "appjwEx":
+                    throw appjwEx;
+                case "appjwExToo":
+                    throw appjwExToo;
+                case "apprtEx":
+                    throw apprtEx;
+                case "appEx":
+                    throw appEx;
+
+                default:
+                    System.out.println(1 / 0);
+                    ;
+
+            }
+        } catch (Exception exception    ) {
+            // Throw in appEx wrapper
+            throw (new ApplicationException( exception));
+        }
+
+    }
+
+
 
 
 

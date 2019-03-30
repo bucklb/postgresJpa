@@ -15,12 +15,8 @@ import java.util.List;
  * - date strings that are not dates
  * - dates in the future (birth date & reg date)
  */
-//public class ApiValidationException extends HttpMessageNotReadableException {
 public class ApiValidationException extends ApplicationException {
 
-    // Probably a good idea to have the status rather closer to the exception (rather than in the handler itself)
-    private List<ApiError> apiErrors;
-    public List<ApiError> getApiErrors() { return apiErrors; }
 
     @Override   // if not overridden then will be raised with 500
     public HttpStatus getStatus() { return status; }
@@ -30,17 +26,14 @@ public class ApiValidationException extends ApplicationException {
         Error list should be enough, without any extra explanation
      */
     public ApiValidationException(List<ApiError> apiErrors) {
-        super("apiValidation");   // is this good enough or do we need the HttpInputMessage too??
-        this.apiErrors=apiErrors;
+        super(apiErrors);   // is this good enough or do we need the HttpInputMessage too??
     }
 
     /*
         Allow caller to be spared the pain of creating an arrayList for a single error/message
      */
     public ApiValidationException(String fieldName, String fieldMessage) {
-        super("apiValidation");
-        this.apiErrors = new ArrayList<>();
-        this.apiErrors.add(new ApiError(fieldName,fieldMessage));
+        super(new ApiError(fieldName,fieldMessage));
     }
 
     /*
@@ -48,7 +41,6 @@ public class ApiValidationException extends ApplicationException {
     */
     public ApiValidationException(HttpServletRequest httpServletRequest, ApiValidationException e) {
         super(httpServletRequest, e);
-        this.apiErrors = e.getApiErrors();
     }
 
 }
