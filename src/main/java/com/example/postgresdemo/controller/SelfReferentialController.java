@@ -1,7 +1,7 @@
 package com.example.postgresdemo.controller;
 
 import com.example.postgresdemo.exception.ApiValidationException;
-import com.example.postgresdemo.service.JWTHelper;
+import com.example.postgresdemo.service.JwtHelper;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,7 +63,7 @@ public class SelfReferentialController {
             HttpHeaders inHeaders = new HttpHeaders();
 
             inHeaders.setContentType(MediaType.APPLICATION_JSON);
-            String tkn = JWTHelper.generateTestJWT();
+            String tkn = JwtHelper.generateTestJWT();
 
             tkn="SomethingBenign";
 

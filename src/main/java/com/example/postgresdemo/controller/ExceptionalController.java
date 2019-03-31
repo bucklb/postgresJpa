@@ -31,7 +31,21 @@ public class ExceptionalController {
     @Autowired
     ExceptionalService exceptionalService;
 
-    // Use get ../exception/<exType> to trigger.  Cuases an exception of relevant flavour to be thrown
+    // Throw the requested exception and don't handle it (beyond the controllerAdvice stuff).
+    // Unless something has been explicitly thrown as an AppException it won't be handled nicely
+    @GetMapping("exception/clean/{exType}")
+    public String doCleanThrow(@PathVariable String exType) {
+
+        exceptionalService.thrower(exType);
+
+        // Should never hit this
+        return "Missed an exception???";
+
+    }
+
+    // Use get ../exception/throw/<exType> to trigger.  Causes an exception of relevant flavour to be thrown
+    // but we then catch all exceptions and rethrow as AppExceptions here.
+    // Exception handler(s) should only ever encounter AppExceptions (that might be wrappers to other exception types)
     @GetMapping("throw/{exType}")
     public String doThrow(@PathVariable String exType) {
 
@@ -48,6 +62,11 @@ public class ExceptionalController {
 
     }
 
+    // Use get ../exception/throw/<exType> to trigger.  Causes an exception of relevant flavour to be thrown
+    // and then captured and rethrown at low level.
+    // We then catch all exceptions and rethrow as AppExceptions here.
+    // Exception handler(s) should only ever encounter AppExceptions based on AppExceptions
+    // (that might be wrappers to other exception types)
     @GetMapping("rethrow/{exType}")
     public String doReThrow(@PathVariable String exType) {
 
@@ -82,15 +101,5 @@ public class ExceptionalController {
     }
 
 
-    // If we don't catch the exception
-    @GetMapping("clean/{exType}")
-    public String doCleanThrow(@PathVariable String exType) {
-
-        exceptionalService.thrower(exType);
-
-        // Should never hit this
-        return "Missed an exception???";
-
-    }
 
 }

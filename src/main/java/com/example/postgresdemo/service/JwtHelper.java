@@ -1,12 +1,10 @@
 package com.example.postgresdemo.service;
 
-import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.DatatypeConverter;
 
 import com.example.postgresdemo.exception.ApiError;
 import com.example.postgresdemo.exception.ApiValidationException;
-import com.example.postgresdemo.exception.ApplicationException;
 import com.example.postgresdemo.exception.JwtValidationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -15,9 +13,7 @@ import io.jsonwebtoken.*;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.sql.Timestamp;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,12 +23,9 @@ import java.util.List;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.impl.TextCodec;
-import javassist.bytecode.stackmap.BasicBlock;
-import org.joda.time.DateTime;
-import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Service;
 
 import static java.time.LocalDateTime.now;
 
@@ -49,10 +42,10 @@ import static java.time.LocalDateTime.now;
     https://developer.okta.com/blog/2018/10/31/jwts-with-java
  */
 
+@Service
+public class JwtHelper {
 
-public class JWTHelper {
-
-    static Logger log = LoggerFactory.getLogger(JWTHelper.class);
+    static Logger log = LoggerFactory.getLogger(JwtHelper.class);
 
     private static final String BEARER = "Bearer";
     private static final String AUTHTN = "Authorization";
@@ -121,7 +114,7 @@ public class JWTHelper {
         Check that the headers have something usable.  Not yet found a way to get the headers off a request
         Raises bad request (via ApiValidation) but could raise as forbidden (via JwtValidation)
      */
-    private static String checkHeadersForJwt(HttpServletRequest request) {
+    private String checkHeadersForJwt(HttpServletRequest request) {
 
         String authHdr = request.getHeader(AUTHTN);
 
@@ -156,7 +149,7 @@ public class JWTHelper {
     /*
     If it's a decent token we'll get claims from it.  Otherwise we'll throw exception(s)
      */
-    private static Claims parseJwtIntoClaims(String jwt) {
+    private Claims parseJwtIntoClaims(String jwt) {
 
         Claims jtwClaims=null;
 
@@ -187,7 +180,7 @@ public class JWTHelper {
         NOTE : parser checks expiration date BUT only if one is given ...
         futureNotPast - true -> must be future, false -> must be past
      */
-    private static  boolean checkTokenDateValidity( String token, String dateName) {
+    private  boolean checkTokenDateValidity( String token, String dateName) {
 
         Date dt = null;
         boolean future = false;
@@ -231,7 +224,7 @@ public class JWTHelper {
         Check that now is between issue & expiry date times.  Throw exception if not
         NOTE : default parser/checker looks for EXPIRED if given date, but is fine if no expiry is given :(
      */
-    private static boolean checkTokenDatesValidity( String token) {
+    private boolean checkTokenDatesValidity( String token) {
 
         LocalDateTime expires, issued;
         ArrayList<ApiError> apiErrors = new ArrayList<>();
@@ -263,7 +256,7 @@ public class JWTHelper {
     /*
         Check issuer is as expected
      */
-    private static  boolean checkTokenIssuer( String token ) {
+    private  boolean checkTokenIssuer( String token ) {
 
         String iss = getClaimValue(ISSUER);
         if( iss == null || iss.isEmpty() ){
@@ -283,7 +276,7 @@ public class JWTHelper {
     /*
         This will be interesting.  Need to check if source, expiry, etc etc seem valid
      */
-    private static boolean checkTokenValidity( String token ) {
+    private boolean checkTokenValidity( String token ) {
 
         LocalDateTime expiry;
 
@@ -311,7 +304,7 @@ public class JWTHelper {
         End game for CRSRW is to get the providers and services from the token.
         Will throw exceptions ...
      */
-    private static List<String> getListForClaim(String claimName) {
+    private List<String> getListForClaim(String claimName) {
 
         String[] claimArray=null;
         ObjectMapper mapper = new ObjectMapper();
@@ -346,7 +339,7 @@ public class JWTHelper {
     /*
         Try & keep things less complex.  May well be better names than "get lists"
      */
-    private static boolean getClaimLists() {
+    private boolean getClaimLists() {
 
         // Allow option of building up errors
         ArrayList<ApiError> apiErrors = new ArrayList<>();
@@ -389,7 +382,7 @@ public class JWTHelper {
         Finally can check it's from where we expect, still valid, etc etc
         ?? Gather the various issues together (and return a set) or just return first one ??
      */
-    public static boolean checkRequestAuthorisation(HttpServletRequest request) throws ApiValidationException {
+    public boolean checkRequestAuthorisation(HttpServletRequest request) throws ApiValidationException {
 
         System.out.println("called checkRequestAuthorisation");
 
@@ -413,10 +406,10 @@ public class JWTHelper {
     /*
         Want to know if stuff is on the list(s)
      */
-    public static boolean providerAllowed(String providerName) {
+    public boolean providerAllowed(String providerName) {
         return provider.contains( providerName );
     }
-    public static boolean serviceAllowed(String serviceName) {
+    public boolean serviceAllowed(String serviceName) {
         return services.contains( serviceName );
     }
 
@@ -427,7 +420,7 @@ public class JWTHelper {
     /*
         At some point need to deal with a JWT. Pull out the claims. NOTE : Will object to blindingly obvious problems ONLY
      */
-    public static Claims parseJWT(String jwt) throws ApiValidationException {
+    public Claims parseJWT(String jwt) throws ApiValidationException {
 
         return parseJwtIntoClaims( jwt );
 
@@ -437,7 +430,7 @@ public class JWTHelper {
     /*
         Just in case we change the way we handle (or name) claims
      */
-    private static String getClaimValue( String key) {
+    private String getClaimValue( String key) {
         return claims.get(key,String.class);
     }
 

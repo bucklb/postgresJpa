@@ -2,8 +2,6 @@ package com.example.postgresdemo.controller;
 
 import com.example.postgresdemo.exception.*;
 import com.example.postgresdemo.service.DeathDetailsService;
-import com.example.postgresdemo.service.JWTHelper;
-import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +18,6 @@ import uk.gov.dwp.tuo.gen.domain.BirthCase;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
-import java.util.Enumeration;
 
 @RequestMapping("")
 @RestController
@@ -52,78 +49,13 @@ public class HomeController {
         httpServletResponse.setStatus(REDIRECT_CDE);
     }
 
-    private void zipThruRequestHeaders(HttpServletRequest request){
-        System.out.println("Headers ______________________");
-        Enumeration headerNames = request.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String key = (String) headerNames.nextElement();
-            String value = request.getHeader(key);
-
-            System.out.println("Header : " + key + "   value : " + value);
-
-//            map.put(key, value);
-        }
-        System.out.println("Headers -=-=-=-=-=-=-=-=-=-=-=-");
-    }
 
 
     // To fit in, continue the ping-pong convention
     @GetMapping("/ping")
-    public String getPing(HttpServletRequest request) throws ApiValidationException {
+    public String getPing() throws ApiValidationException {
 
-        String token="";
-        System.out.println("Ping has been hit");
-
-        // Want to run through headers we may have got. But not necessarily ALL the time
-        if (10>1) { zipThruRequestHeaders(request); }
-
-
-        // Devolve request checking to JwtHelper
-        JWTHelper.checkRequestAuthorisation(request);
-
-
-
-
-
-
-
-
-        // One we care about is the authorization (for now)
-        token = request.getHeader("authorization");
-        System.out.println(token);
-
-        if( token != null ) {
-
-            System.out.println("authorisation token = " + token);
-
-            // Need to decide on a pattern.  Lots of things suggest preceded by Bearer ...
-            String[] tokens = token.split(" ");
-            token = tokens[tokens.length-1];
-
-            // We should now have the real token in hand. Query it
-            Claims c = JWTHelper.parseJWT(token);
-
-            String nm =  c.get("name",String.class);
-            System.out.println("Name from token is : " + nm);
-
-        } else {
-            System.out.println("No authorization token found");
-
-        }
-
-
-
-
-        if(0>1) {
-
-            // TODO : could we throw a ResponseEntityException (so it gets picked up by the stuff that handles other validation)
-            // throw new MethodArgumentNotValidException();
-            throw new HttpMessageNotReadableException("registration detail array should not be empty");
-
-//            throw new ApiValidationException("registration details", "must not be empty array");
-        }
-
-        return "pong" + token;
+        return "pong";
     }
 
 
@@ -169,6 +101,9 @@ public class HomeController {
         return ansa;
     }
 
+    /*
+        Contrived approach to getting an error/example?
+     */
     private void thrower() throws MethodArgumentNotValidException {
 
         // Dummy up a request ... the dateOfBirth value will appear as a rejected value (after the colon)

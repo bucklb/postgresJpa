@@ -3,7 +3,7 @@ package com.example.postgresdemo;
 import com.example.postgresdemo.exception.ApiError;
 import com.example.postgresdemo.exception.ApiValidationException;
 import com.example.postgresdemo.exception.JwtValidationException;
-import com.example.postgresdemo.service.JWTHelper;
+import com.example.postgresdemo.service.JwtHelper;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -11,6 +11,7 @@ import io.jsonwebtoken.impl.TextCodec;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
 import java.time.Instant;
 import java.util.*;
@@ -33,6 +34,9 @@ public class JWTokenTests {
 
     @Mock
     MockHttpServletRequest mockServletRequest;
+
+    // Object we want to be testing
+    JwtHelper jwtHelper;
 
     // Lots of possible test cases where we want to try out various oddities.  Allow main claims to ccome in
     // NOTE : will throw IllegalStateException if NO claims are provided (via dates OR hashMap)
@@ -93,6 +97,8 @@ public class JWTokenTests {
     public void setUp() {
         // Main point of entry is the request and its headers
         mockServletRequest = new MockHttpServletRequest();
+
+        jwtHelper = new JwtHelper();
     }
 
 
@@ -102,42 +108,42 @@ public class JWTokenTests {
     // In the absence of any headers, will throw exception
     @Test (expected = ApiValidationException.class)
     public void testInvalid_NoHeaders () {
-        JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
     // Headers, but not an Authorization one
     @Test (expected = ApiValidationException.class)
     public void testInvalid_NoAuthHeader () {
         mockServletRequest.addHeader("sayso","sayNotSo");
-        JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
     // Authorization but value doesn't start "Bearer "
     @Test (expected = ApiValidationException.class)
     public void testInvalid_AuthFormat () {
         mockServletRequest.addHeader("Authorization","sayNotSo");
-        JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
     // Authorization and starts "Bearer " but token is missing
     @Test (expected = ApiValidationException.class)
     public void testInvalid_TokenMissing () {
         mockServletRequest.addHeader("Authorization","Bearer ");
-        JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
     // Authorization and starts "Bearer " but token is not a.b.c
     @Test (expected = ApiValidationException.class)
     public void testInvalid_TokenFormat () {
         mockServletRequest.addHeader("Authorization","Bearer Even.BarerYet");
-        JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
     // Authorization and starts "Bearer ", token in format a.b.c but token is rubbish
     @Test (expected = ApiValidationException.class)
     public void testInvalid_TokenRubbish () {
         mockServletRequest.addHeader("Authorization","Bearer Even.Barer.Yet");
-        JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
 
@@ -149,7 +155,7 @@ public class JWTokenTests {
     public void testInValidated_TokenHeaderHeader () {
         String jwt = generateValidJwt();
         mockServletRequest.addHeader("Authorization","Bearer xyz" + jwt);
-        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
     // If we give it a mis-signed token then expect an exception (with different message).  Just tack stuff on then of a good token
@@ -157,7 +163,7 @@ public class JWTokenTests {
     public void testInValidated_TokenSignatureHeader () {
         String jwt = generateValidJwt();
         mockServletRequest.addHeader("Authorization","Bearer " + jwt + 99);
-        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
 
@@ -172,17 +178,17 @@ public class JWTokenTests {
     public void testValidTokenHeader () {
         String jwt = generateValidJwt();
         mockServletRequest.addHeader("Authorization","Bearer " + jwt);
-        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
 
         // If we fail this assert very likely that the (apparently valid jwt has been seen as invalid)
         assert(v);
 
         // check provider & service. TODO : put these as constants ??
-        assert(JWTHelper.providerAllowed("0099229"));
-        assert(!JWTHelper.providerAllowed("noneSuch"));
+        assert(jwtHelper.providerAllowed("0099229"));
+        assert(!jwtHelper.providerAllowed("noneSuch"));
 
-        assert(JWTHelper.serviceAllowed("family information services"));
-        assert(!JWTHelper.serviceAllowed("noneSuch"));
+        assert(jwtHelper.serviceAllowed("family information services"));
+        assert(!jwtHelper.serviceAllowed("noneSuch"));
     }
 
 
@@ -193,13 +199,13 @@ public class JWTokenTests {
     public void testMissingExpiryValue () {
         String tkn = createBespokeJWT( -6000, 0, validClaimsHashMap());
         mockServletRequest.addHeader("Authorization","Bearer " + tkn);
-        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
     @Test (expected = ApiValidationException.class)
     public void testMissingIssuedAtValue () {
         String tkn = createBespokeJWT( 0, 6000, validClaimsHashMap());
         mockServletRequest.addHeader("Authorization","Bearer " + tkn);
-        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
     /*
@@ -210,13 +216,13 @@ public class JWTokenTests {
         // Will depend if we offer any leeway/skew on the expiry
         String tkn = createBespokeJWT( -6000, -100, validClaimsHashMap());
         mockServletRequest.addHeader("Authorization","Bearer " + tkn);
-        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
     @Test (expected = ApiValidationException.class)
     public void testFutureIssuedAtValue () {
-        String tkn = createBespokeJWT( +100, 6000, validClaimsHashMap());
+        String tkn = createBespokeJWT( +6000, 6000, validClaimsHashMap());
         mockServletRequest.addHeader("Authorization","Bearer " + tkn);
-        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
     /*
@@ -228,7 +234,7 @@ public class JWTokenTests {
         hm.remove("iss");
         String tkn = createBespokeJWT( -6000, 6000, hm);
         mockServletRequest.addHeader("Authorization","Bearer " + tkn);
-        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
     @Test (expected = ApiValidationException.class)
     public void testUnknownIssuer () {
@@ -236,7 +242,7 @@ public class JWTokenTests {
         hm.put("iss","noneSuch. No, really. No idea who you're talking about!!!!!");
         String tkn = createBespokeJWT( -6000, 6000, hm);
         mockServletRequest.addHeader("Authorization","Bearer " + tkn);
-        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
     /*
@@ -248,7 +254,7 @@ public class JWTokenTests {
         hm.remove("provider");
         String tkn = createBespokeJWT( -6000, 6000, hm);
         mockServletRequest.addHeader("Authorization","Bearer " + tkn);
-        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
     @Test (expected = ApiValidationException.class)
     public void testMissingServices () {
@@ -256,7 +262,7 @@ public class JWTokenTests {
         hm.remove("services");
         String tkn = createBespokeJWT( -6000, 6000, hm);
         mockServletRequest.addHeader("Authorization","Bearer " + tkn);
-        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
     @Test (expected = ApiValidationException.class)
     public void testMalformedProvider () {
@@ -264,7 +270,7 @@ public class JWTokenTests {
         hm.put("provider", "random garbage");
         String tkn = createBespokeJWT( -6000, 6000, hm);
         mockServletRequest.addHeader("Authorization","Bearer " + tkn);
-        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
     @Test (expected = ApiValidationException.class)
     public void testMalformedServices () {
@@ -272,7 +278,7 @@ public class JWTokenTests {
         hm.put("services", "random garbage");
         String tkn = createBespokeJWT( -6000, 6000, hm);
         mockServletRequest.addHeader("Authorization","Bearer " + tkn);
-        boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+        boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
     }
 
 
@@ -292,7 +298,7 @@ public class JWTokenTests {
         mockServletRequest.addHeader("Authorization","Bearer " + tkn);
 
         try {
-            boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+            boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
         } catch (ApiValidationException avEx) {
             apiErrors = avEx.getApiErrors();
         }
@@ -318,7 +324,7 @@ public class JWTokenTests {
         mockServletRequest.addHeader("Authorization","Bearer " + tkn);
 
         try {
-            boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+            boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
         } catch (ApiValidationException avEx) {
             apiErrors = avEx.getApiErrors();
         }
@@ -344,7 +350,7 @@ public class JWTokenTests {
         mockServletRequest.addHeader("Authorization","Bearer " + tkn);
 
         try {
-            boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+            boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
         } catch (ApiValidationException avEx) {
             apiErrors = avEx.getApiErrors();
         }
@@ -374,7 +380,7 @@ public class JWTokenTests {
         mockServletRequest.addHeader("Authorization","Bearer " + tkn);
 
         try {
-            boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+            boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
         } catch (ApiValidationException avEx) {
             apiErrors = avEx.getApiErrors();
         }
@@ -394,7 +400,7 @@ public class JWTokenTests {
 
         mockServletRequest.addHeader("Authorization","Bearer Even.Barer.Yet");
         try {
-            boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+            boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
         } catch (ApiValidationException avEx) {
             apiErrors = avEx.getApiErrors();
         }
@@ -414,7 +420,7 @@ public class JWTokenTests {
         List<ApiError> apiErrors = null;
 
         try {
-            boolean v = JWTHelper.checkRequestAuthorisation(mockServletRequest);
+            boolean v = jwtHelper.checkRequestAuthorisation(mockServletRequest);
         } catch (ApiValidationException avEx) {
             apiErrors = avEx.getApiErrors();
         }

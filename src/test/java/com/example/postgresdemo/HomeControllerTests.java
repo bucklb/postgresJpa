@@ -1,7 +1,7 @@
 package com.example.postgresdemo;
 
 import com.example.postgresdemo.controller.HomeController;
-import com.example.postgresdemo.service.JWTHelper;
+import com.example.postgresdemo.service.JwtHelper;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.springframework.http.HttpHeaders;
@@ -17,7 +17,7 @@ import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 public class HomeControllerTests {
 
     @Mock
-    JWTHelper mockHelper;
+    JwtHelper mockHelper;
 
     @Test
     public void NodAndSmile(){
@@ -31,14 +31,13 @@ public class HomeControllerTests {
         // Create the test controller outside the "given" command such that we can inject a mocked service/repo
         HomeController hc = new HomeController();
 
-
-        // Without authentication an ApiValidationException gets thrown (and converted to a 400 response by default)
+        // Removed authentication (to jwtController) so expect a 200 now
         given().
                 standaloneSetup(hc).
                 when().
                 get("/ping").
                 then().
-                statusCode(400).
+                statusCode(200).
                 body(containsString(""));
     }
 
@@ -67,7 +66,7 @@ public class HomeControllerTests {
         HttpHeaders inHeaders = new HttpHeaders();
 
         inHeaders.setContentType(MediaType.APPLICATION_JSON);
-        String tkn = JWTHelper.generateTestJWT();
+        String tkn = JwtHelper.generateTestJWT();
         inHeaders.add("Authorization", "Bearer " + tkn);
 
 

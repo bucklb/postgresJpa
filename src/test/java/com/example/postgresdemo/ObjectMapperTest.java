@@ -1,12 +1,10 @@
 package com.example.postgresdemo;
 
-import com.example.postgresdemo.service.JWTHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 public class ObjectMapperTest {
 
