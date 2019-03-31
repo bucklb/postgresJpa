@@ -1,20 +1,20 @@
 package com.example.postgresdemo.SBPF;
 
+import com.example.postgresdemo.model.MixIn_A;
+import com.example.postgresdemo.model.MixIn_B;
+import com.example.postgresdemo.service.MixInHelper;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import org.bouncycastle.operator.bc.BcAESSymmetricKeyUnwrapper;
+import org.junit.Before;
 import org.junit.Test;
-import org.springframework.remoting.jaxws.SimpleJaxWsServiceExporter;
+import org.springframework.cglib.proxy.Mixin;
 
 import static org.junit.Assert.assertEquals;
-
+import com.example.postgresdemo.service.MixInHelper.DynamicMixIn;
 /*
     Toy with the filtering when we can't annotate the class
 
@@ -31,6 +31,16 @@ import static org.junit.Assert.assertEquals;
  */
 public class SBPFTest2 {
 
+    MixInHelper mixInHelper;
+
+    @Before
+    public void setUp(){
+        mixInHelper = new MixInHelper();
+
+        System.out.println("miH is null = " + mixInHelper == null);
+
+    }
+
     // May want to use this if wanting multiple mixIns
     class MyMixIn
     {
@@ -42,10 +52,10 @@ public class SBPFTest2 {
 
 
     // The MixIn stuff (which presumably relies on reflecting a class in to a wrapper ???
-    @JsonFilter("AClassMixIn")
-    class AClassMixIn {}
-    @JsonFilter("DynamicMixIn")
-    public class DynamicMixIn {    }
+//    @JsonFilter("AClassMixIn")
+//    class AClassMixIn {}
+//    @JsonFilter("DynamicMixIn")
+//    public class DynamicMixIn {    }
     @JsonFilter("DynamicMixInToo")
     public class DynamicMixInToo {    }
 
@@ -53,64 +63,52 @@ public class SBPFTest2 {
         System.out.println(c.getName());
     }
 
-    private AClass getTestAClass() {
-        BClass[] bclass = {
-                new BClass("ego","big","small"),
-                new BClass("super-ego","little","tall")};
+    private MixIn_A getTestAClass() {
+        MixIn_B[] bclass = {
+                new MixIn_B("ego","big","small"),
+                new MixIn_B("super-ego","little","tall")};
         String[] color = {"black", "blue"};
 
-        AClass aClass = new AClass("69","naughty", color,69, bclass);
+        MixIn_A aClass = new MixIn_A("69","naughty", color,69, bclass);
 
         return aClass;
     }
-
-
-    @Test
-    public void classy(){
-
-        System.out.println(AClassMixIn.class.getSimpleName());
-
-    }
-
-
-
-
 
     /*
         Pass in the class so can illustrate the effect
         NOTE : tests for de-serialisation REALLY need noNull to be true
      */
-    private String illustrateMixInClass(Object obj, String[] props ,Class c, Class m, boolean inc, boolean noNull) throws Exception {
-
-//        String[] props = {"id","size","color","nonesuch"};
-
-        // Need a filterProvider and a mapper
-        ObjectMapper mapper = new ObjectMapper();
-
-        if (noNull) {
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        } else {
-            mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
-        }
-
-        // Add a filter and a MixIn, but only if we get given one
-        if ( c != null && m!=null ) {
-            mapper.addMixIn(c, m);
-
-            // Add a provider
-            FilterProvider filterProvider = new SimpleFilterProvider();
-            ((SimpleFilterProvider) filterProvider).addFilter(m.getSimpleName(),
-                    inc ? SimpleBeanPropertyFilter.filterOutAllExcept(props)
-                        : SimpleBeanPropertyFilter.serializeAllExcept(props));
-
-            mapper.setFilterProvider(filterProvider);
-        }
-
-        // Do the mapping
-        String jSon=mapper.writeValueAsString( obj );
-        System.out.println(jSon);
-        return jSon;
-    }
+//    private String illustrateMixInClass(Object obj, String[] props ,Class c, Class m, boolean inc, boolean noNull) throws Exception {
+//
+////        String[] props = {"id","size","color","nonesuch"};
+//
+//        // Need a filterProvider and a mapper
+//        ObjectMapper mapper = new ObjectMapper();
+//
+//        if (noNull) {
+//            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+//        } else {
+//            mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
+//        }
+//
+//        // Add a filter and a MixIn, but only if we get given one
+//        if ( c != null && m!=null ) {
+//            mapper.addMixIn(c, m);
+//
+//            // Add a provider
+//            FilterProvider filterProvider = new SimpleFilterProvider();
+//            ((SimpleFilterProvider) filterProvider).addFilter(m.getSimpleName(),
+//                    inc ? SimpleBeanPropertyFilter.filterOutAllExcept(props)
+//                        : SimpleBeanPropertyFilter.serializeAllExcept(props));
+//
+//            mapper.setFilterProvider(filterProvider);
+//        }
+//
+//        // Do the mapping
+//        String jSon=mapper.writeValueAsString( obj );
+//        System.out.println(jSon);
+//        return jSon;
+//    }
 
     // Presumably the lot if we don't specify anything much to filter
     @Test
@@ -120,19 +118,24 @@ public class SBPFTest2 {
 
         // Pass null(s) to the illustration :
         String jSon=null;
-        AClass a = null;
-        AClass aClass=getTestAClass();
+        MixIn_A a = null;
+        MixIn_A aClass=getTestAClass();
         ObjectMapper om = new ObjectMapper();
         ObjectMapper noNullOM = new ObjectMapper();
 
         // Must set the mapper to match the one used in the routine
         noNullOM.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        jSon = illustrateMixInClass(aClass,props,null, DynamicMixIn.class, false, true );
-        a = noNullOM.readValue(jSon, AClass.class);
+        System.out.println("miH is null = " + mixInHelper == null);
+        jSon = mixInHelper.applyMixIn(aClass,
+                props,
+                Object.class,
+                DynamicMixIn.class,
+                false, true );
+        a = noNullOM.readValue(jSon, MixIn_A.class);
         assertEquals(jSon, noNullOM.writeValueAsString(a));
 
-        jSon = illustrateMixInClass(aClass,props,null, DynamicMixIn.class, false, false );
-        a = om.readValue(jSon, AClass.class);
+        jSon = mixInHelper.applyMixIn(aClass,props,null, DynamicMixIn.class, false, false );
+        a = om.readValue(jSon, MixIn_A.class);
         assertEquals(jSon, om.writeValueAsString(a));
 
     }
@@ -151,37 +154,39 @@ public class SBPFTest2 {
         ObjectMapper noNullOM = new ObjectMapper();
         noNullOM.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         ObjectMapper allowNullOM = new ObjectMapper();
-        AClass a=null;
-        AClass aClass=getTestAClass();
+        MixIn_A a=null;
+        MixIn_A aClass=getTestAClass();
 
         // Apply "dynamicFilter" to all.  Id is lost from AClass & BClass (A also loses color & B also loses size)
-        jSon = illustrateMixInClass(aClass,props,Object.class, DynamicMixIn.class, false, true );
-        a=noNullOM.readValue(jSon, AClass.class);
+        jSon = mixInHelper.applyMixIn(aClass,props,Object.class, DynamicMixIn.class, false, true );
+        a=noNullOM.readValue(jSon, MixIn_A.class);
         assertEquals(jSon,noNullOM.writeValueAsString(a));
 
         // Apply "dynamicFilter" to AClass only.  Id is lost ONLY from AClass.  B keeps id & size.
         // Can't do deserialisation test as not setting noNull
-        jSon = illustrateMixInClass(aClass,props,AClass.class, DynamicMixInToo.class, false, false );
+//        jSon = illustrateMixInClass(aClass,props,MixIn_A.class, DynamicMixInToo.class, false, false );
+        jSon = mixInHelper.applyMixIn(aClass,props,MixIn_A.class, DynamicMixIn.class, false, false );
 
         // Apply to B only.  Id is lost ONLY from BClass.  A keeps id & color
-        jSon = illustrateMixInClass(aClass,props,BClass.class, DynamicMixInToo.class, false, true );
-        a=noNullOM.readValue(jSon, AClass.class);
+//      jSon = illustrateMixInClass(aClass,props,MixIn_B.class, DynamicMixInToo.class, false, true );
+        jSon = mixInHelper.applyMixIn(aClass,props,MixIn_B.class, DynamicMixIn.class, false, true );
+        a=noNullOM.readValue(jSon, MixIn_A.class);
         assertEquals(jSon,noNullOM.writeValueAsString(a));
 
 
         System.out.println("--------------------------------------------------------------------------------");
 
         // Apply "dynamicFilter" to AClass only.  Id is lost.  Use noNull = true this time
-        jSon = illustrateMixInClass(aClass,props,AClass.class, DynamicMixIn.class, false, true );   // Finally.  Can we get an object back again
+        jSon = mixInHelper.applyMixIn(aClass,props,MixIn_A.class, DynamicMixIn.class, false, true );   // Finally.  Can we get an object back again
 
         // Null to Null
-        a=noNullOM.readValue(jSon, AClass.class);
+        a=noNullOM.readValue(jSon, MixIn_A.class);
         assertEquals(jSon,noNullOM.writeValueAsString(a));
 
         System.out.println( jSon );
 
         // Apply "dynamicFilter" to AClass only.  Id is lost.  Use noNull = true this time
-        jSon = illustrateMixInClass(aClass,props,null, DynamicMixIn.class, true, true );   // Finally.  Can we get an object back again
+        jSon = mixInHelper.applyMixIn(aClass,props,null, DynamicMixIn.class, true, true );   // Finally.  Can we get an object back again
     }
 
     // Should be possible to chain stuff together?
@@ -194,17 +199,17 @@ public class SBPFTest2 {
         ObjectMapper noNullOM = new ObjectMapper();
         noNullOM.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-        AClass a=null;
-        AClass aClass=getTestAClass();
+        MixIn_A a=null;
+        MixIn_A aClass=getTestAClass();
 
         // Filter out the "confidential" bits.  Could assert that id not in jSon
-        jSon = illustrateMixInClass(aClass, ex_props, Object.class, DynamicMixIn.class, false, true );
-        aClass=noNullOM.readValue(jSon, AClass.class);
+        jSon = mixInHelper.applyMixIn(aClass, ex_props, Object.class, DynamicMixIn.class, false, true );
+        aClass=noNullOM.readValue(jSon, MixIn_A.class);
         assertEquals(jSon,noNullOM.writeValueAsString(aClass));
 
         // Pick out fom the available parts the specifics that need to be available.  Assert that "size" & "name" is now missing??
-        jSon = illustrateMixInClass(aClass, in_props, Object.class, DynamicMixIn.class, true, true );
-        aClass=noNullOM.readValue(jSon, AClass.class);
+        jSon = mixInHelper.applyMixIn(aClass, in_props, Object.class, DynamicMixIn.class, true, true );
+        aClass=noNullOM.readValue(jSon, MixIn_A.class);
         assertEquals(jSon,noNullOM.writeValueAsString(aClass));
     }
 
@@ -219,22 +224,23 @@ public class SBPFTest2 {
         ObjectMapper noNullOM = new ObjectMapper();
         noNullOM.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-        AClass a=null;
-        AClass aClass=getTestAClass();
+        MixIn_A a=null;
+        MixIn_A aClass=getTestAClass();
 
         // Filter out the "confidential" bits.  Applies to ClassA and to ClassB
-        jSon = illustrateMixInClass(aClass, ex_props, Object.class, DynamicMixIn.class, false, true );
-        aClass=noNullOM.readValue(jSon, AClass.class);
+        jSon = mixInHelper.applyMixIn(aClass, ex_props, Object.class, DynamicMixIn.class, false, true );
+        aClass=noNullOM.readValue(jSon, MixIn_A.class);
         assertEquals(jSon,noNullOM.writeValueAsString(aClass));
 
         // Pick out what has been requested from ClassA itself, leaving classB alone
-        jSon = illustrateMixInClass(aClass, in_propsA, AClass.class, DynamicMixInToo.class, true, true );
-        aClass=noNullOM.readValue(jSon, AClass.class);
+//        jSon = illustrateMixInClass(aClass, in_propsA, MixIn_A.class, DynamicMixInToo.class, true, true );
+        jSon = mixInHelper.applyMixIn(aClass, in_propsA, MixIn_A.class, DynamicMixIn.class, true, true );
+        aClass=noNullOM.readValue(jSon, MixIn_A.class);
         assertEquals(jSon,noNullOM.writeValueAsString(aClass));
 
         // Pick out what has been requested from ClassB(s), leaving classA alone
-        jSon = illustrateMixInClass(aClass, in_propsB, BClass.class, DynamicMixIn.class, true, true );
-        aClass=noNullOM.readValue(jSon, AClass.class);
+        jSon = mixInHelper.applyMixIn(aClass, in_propsB, MixIn_B.class, DynamicMixIn.class, true, true );
+        aClass=noNullOM.readValue(jSon, MixIn_A.class);
         assertEquals(jSon,noNullOM.writeValueAsString(aClass));
 
 
@@ -248,7 +254,7 @@ public class SBPFTest2 {
     public void SbpfTest_MixIn() throws Exception {
 
 //        AClass aClass = new AClass();
-        AClass aClass = getTestAClass();
+        MixIn_A aClass = getTestAClass();
         String[] propertiesToExclude = {"id","size"};
 
         // This approach means EVERY object gets treated as having the DynamicMixIn (and dynamicFilter applied to it)
@@ -272,11 +278,11 @@ public class SBPFTest2 {
     public void SbpfTest_AClassMixIn() throws Exception {
 
 //        AClass aClass = new AClass();
-        AClass aClass = getTestAClass();
+        MixIn_A aClass = getTestAClass();
         String[] propertiesToExclude = {"id","size"};
         // Only treat AClass as getting the filter
         ObjectMapper mapper = new ObjectMapper()
-                .addMixIn(AClass.class, DynamicMixIn.class);
+                .addMixIn(MixIn_A.class, DynamicMixIn.class);
         FilterProvider filterProvider = new SimpleFilterProvider()
                 // Apply the DynamicFilter too te one class that's linked to it (A)
                 .addFilter("DynamicMixIn",
@@ -293,11 +299,11 @@ public class SBPFTest2 {
     public void SbpfTest_BClassMixIn() throws Exception {
 
 //        AClass aClass = new AClass();
-        AClass aClass = getTestAClass();
+        MixIn_A aClass = getTestAClass();
         String[] propertiesToExclude = {"id"};
         // Only treat BClass as getting the filter
         ObjectMapper mapper = new ObjectMapper()
-                .addMixIn(BClass.class, DynamicMixIn.class);
+                .addMixIn(MixIn_B.class, DynamicMixIn.class);
         FilterProvider filterProvider = new SimpleFilterProvider()
                 // Apply the DynamicFilter too te one class that's linked to it (B)
                 .addFilter("DynamicMixIn",
@@ -314,12 +320,12 @@ public class SBPFTest2 {
     public void SbpfTest_MultiMixIn() throws Exception {
 
 //        AClass aClass = new AClass();
-        AClass aClass = getTestAClass();
+        MixIn_A aClass = getTestAClass();
         String[] propertiesToExclude = {"id","size"};
         // Treat multiple specific classes
         ObjectMapper mapper = new ObjectMapper()
-                .addMixIn(AClass.class, DynamicMixIn.class)
-                .addMixIn(BClass.class, DynamicMixIn.class);
+                .addMixIn(MixIn_A.class, DynamicMixIn.class)
+                .addMixIn(MixIn_B.class, DynamicMixIn.class);
         FilterProvider filterProvider = new SimpleFilterProvider()
                 // filter applies to everything linked to DynamicMixin (both A & B)
                 .addFilter("DynamicMixIn",
@@ -336,7 +342,7 @@ public class SBPFTest2 {
     public void SbpfTest_MultiMultiMixIn() throws Exception {
 
 //        AClass aClass = new AClass();
-        AClass aClass = getTestAClass();
+        MixIn_A aClass = getTestAClass();
         // Looking to add two MixIns (with a Filter each) so sensible to have an exclude list each
         String[] propertiesToExclude = {"id"};
         String[] propertiesToInclude = {"id","name"};
@@ -344,8 +350,8 @@ public class SBPFTest2 {
         // Treat multiple specific classes
         ObjectMapper mapper = new ObjectMapper()
                 // Add a MixIn for each class
-                .addMixIn(AClass.class, DynamicMixIn.class)
-                .addMixIn(BClass.class, DynamicMixInToo.class);
+                .addMixIn(MixIn_A.class, DynamicMixIn.class)
+                .addMixIn(MixIn_B.class, DynamicMixInToo.class);
 
         // Exclude nulls?? Specifically the nulCheck value
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);

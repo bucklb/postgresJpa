@@ -1,0 +1,58 @@
+package com.example.postgresdemo.service;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import org.springframework.stereotype.Service;
+
+/*
+    Played with MixIn in test only.  Maybe look at more realistic implementation
+ */
+@Service
+public class MixInHelper {
+
+    @JsonFilter("DynamicMixIn")
+    public class DynamicMixIn {    }
+
+    /*
+        Pass in the class so can illustrate the effect
+        NOTE : tests for de-serialisation REALLY need noNull to be true
+     */
+    public String applyMixIn(Object objToFilter, String[] fields ,
+                              Class FilteredClass, Class MixInClass,
+                              boolean inc, boolean noNull) throws Exception {
+
+        // Need a filterProvider and a mapper
+        ObjectMapper mapper = new ObjectMapper();
+
+        if (noNull) {
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        } else {
+            mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
+        }
+
+        // Add a filter and a MixIn, but only if we get given one
+        if ( FilteredClass != null && MixInClass!=null ) {
+            mapper.addMixIn(FilteredClass, MixInClass);
+
+            // Add a provider
+            FilterProvider filterProvider = new SimpleFilterProvider();
+            ((SimpleFilterProvider) filterProvider).addFilter(MixInClass.getSimpleName(),
+                    inc ? SimpleBeanPropertyFilter.filterOutAllExcept(fields)
+                            : SimpleBeanPropertyFilter.serializeAllExcept(fields));
+
+            mapper.setFilterProvider(filterProvider);
+        }
+
+        // Do the mapping
+        String jSon=mapper.writeValueAsString( objToFilter );
+        System.out.println(jSon);
+        return jSon;
+    }
+
+
+
+}
