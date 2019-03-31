@@ -198,38 +198,10 @@ public class HomeController {
     public String getMulti(@RequestHeader(value="jSonPath") String jSonPath){
 
         String ansa = null;
-        if(2>10) {
-            // What the call used to do
-            ansa = dds.getDetails(jSonPath);
-            System.out.println("get details called with jSonPath = " + jSonPath + " gets -> " + ansa);
 
-        } else {
-            // More descriptive name
-            String sExTyp = jSonPath;
-
-
-
-
-
-        /*
-            Learning point here is that I can get AppExHandler to kick in the way I want it to
-            BUT ONLY if at its heart it has an Exception (as opposed to an RTE
-         */
-
-            try {
-                // Should throw the exception type we want ...
-                dds.thrower(sExTyp);
-
-            } catch (Exception ex) {
-                // New approach to exceptions means we just need this one catch to (re)throw
-                // and append anything of use from the headers (like interteractionId)
-                logger.info("some log stuff",ex);
-                throw(new ApplicationException(httpServletRequest,ex));
-            }
-        }
-
-
-
+        // Probably used this to try & populate our jSonPath "document"
+        ansa = dds.getDetails(jSonPath);
+        System.out.println("get details called with jSonPath = " + jSonPath + " gets -> " + ansa);
 
         return ansa;
 
