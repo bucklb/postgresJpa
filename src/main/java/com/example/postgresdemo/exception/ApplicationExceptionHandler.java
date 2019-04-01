@@ -22,8 +22,11 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
         List<ApiError> apiErrors = ex.getApiErrors();
         if( apiErrors == null ) {
             apiErrors = new ArrayList<>();
-            apiErrors.add(new ApiError(UNEXPECTED_ERROR, ex.getMessage()));
+            apiErrors.add(new ApiError(UNEXPECTED_ERROR + ">>>>>>>", ex.getMessage()));
         }
+
+
+        System.out.println(ex.getMessage());
 
         return new ResponseEntity<>(apiErrors, ex.getHeaders(), ex.getStatus() );
     }

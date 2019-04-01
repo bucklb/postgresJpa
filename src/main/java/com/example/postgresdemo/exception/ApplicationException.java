@@ -34,7 +34,7 @@ public class ApplicationException extends RuntimeException {
         Ought to only happen as (last) re-throw of an exception.
      */
     public ApplicationException(String interactionId, Throwable e) {
-        super(e);
+        super(e.getMessage(), e);
         this.interactionId = interactionId;
         if( e instanceof  ApplicationException ){
             populateFromApplicationException( (ApplicationException)e);
@@ -50,7 +50,7 @@ public class ApplicationException extends RuntimeException {
         Ought to only happen as (last) re-throw of an exception.
      */
     public ApplicationException(HttpServletRequest httpServletRequest, Throwable e) {
-        super(e);
+        super(e.getMessage(), e);
         setInteractionIdFromHeader(httpServletRequest);
         if( e instanceof  ApplicationException ){
             populateFromApplicationException( (ApplicationException)e);
@@ -69,7 +69,7 @@ public class ApplicationException extends RuntimeException {
     }
 
     public ApplicationException(Throwable e) {
-        super(e);
+        super(e.getMessage(), e);
         if( e instanceof  ApplicationException ){
             populateFromApplicationException( (ApplicationException)e);
         }
