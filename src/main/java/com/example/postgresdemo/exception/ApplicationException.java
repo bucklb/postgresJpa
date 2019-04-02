@@ -16,8 +16,8 @@ public class ApplicationException extends RuntimeException {
     public static final String INTERACTION_ID = "interactionId";
 
     // If we rely on apiErrors across the board ....
-    public List<ApiError> getApiErrors() { return apiErrors; }
-    private List<ApiError> apiErrors;
+//    public List<ApiError> getApiErrors() { return apiErrors; }
+//    private List<ApiError> apiErrors;
 
     // Will generally want this to be overridden as we progress through the profile.  We can't insist that anyone uses it anyway
     public HttpStatus getStatus() { return status; }
@@ -81,16 +81,16 @@ public class ApplicationException extends RuntimeException {
     /*
         Allow only other exceptions access to these constructors.  General public don't get access
      */
-    protected ApplicationException(List<ApiError> apiErrors) {
-        super( apiErrors.toString() );
-        this.apiErrors = apiErrors;
-    }
+//    protected ApplicationException(List<ApiError> apiErrors) {
+//        super( apiErrors.toString() );
+//        this.apiErrors = apiErrors;
+//    }
     // Already have a two string constructor, otherwise would use field, message
-    protected ApplicationException(ApiError apiError) {
-        super( apiError.toString() );
-        this.apiErrors = new ArrayList<>();
-        this.apiErrors.add(apiError);
-    }
+//    protected ApplicationException(ApiError apiError) {
+//        super( apiError.toString() );
+//        this.apiErrors = new ArrayList<>();
+//        this.apiErrors.add(apiError);
+//    }
 
     // TODO : is system happy that a null throwable might get passed?
     protected ApplicationException(String desc, Throwable e, HttpStatus httpStatus) {
@@ -133,7 +133,7 @@ public class ApplicationException extends RuntimeException {
         // If it SHOULD have apiErrors, then cast it so we get the methods and the data
         if( e instanceof  ApplicationException ){
             ApplicationException aEx = (ApplicationException)e;
-            apiErrors = aEx.getApiErrors();
+//            apiErrors = aEx.getApiErrors();
             status = aEx.getStatus();
         }
     }

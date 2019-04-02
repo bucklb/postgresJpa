@@ -18,6 +18,14 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<Object> processApplicationException(ApplicationException ex) {
 
+        System.out.println(ex.getMessage());
+        return new ResponseEntity<>(ex.getMessage(), ex.getHeaders(), ex.getStatus() );
+    }
+
+    // If we haven't been gifted an error list then create a rather basic one as best we can
+    @ExceptionHandler(ApiValidationException.class)
+    public ResponseEntity<Object> processApplicationException(ApiValidationException ex) {
+
         // If we have a list then use it, else knock one together
         List<ApiError> apiErrors = ex.getApiErrors();
         if( apiErrors == null ) {
@@ -26,6 +34,7 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
         }
 
 
+        System.out.println(ex.getClass().getSimpleName());
         System.out.println(ex.getMessage());
 
         return new ResponseEntity<>(apiErrors, ex.getHeaders(), ex.getStatus() );

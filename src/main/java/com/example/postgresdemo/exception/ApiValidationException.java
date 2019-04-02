@@ -22,18 +22,26 @@ public class ApiValidationException extends ApplicationException {
     public HttpStatus getStatus() { return status; }
     private HttpStatus status = HttpStatus.BAD_REQUEST;
 
+    public List<ApiError> getApiErrors() { return apiErrors; }
+    private List<ApiError> apiErrors;
+
     /*
         Error list should be enough, without any extra explanation
      */
     public ApiValidationException(List<ApiError> apiErrors) {
-        super(apiErrors);   // is this good enough or do we need the HttpInputMessage too??
+//        super(apiErrors);   // is this good enough or do we need the HttpInputMessage too??
+        super(apiErrors.toString());   // is this good enough or do we need the HttpInputMessage too??
+        this.apiErrors = apiErrors;
     }
 
     /*
         Allow caller to be spared the pain of creating an arrayList for a single error/message
      */
     public ApiValidationException(String fieldName, String fieldMessage) {
-        super(new ApiError(fieldName,fieldMessage));
+//        super(new ApiError(fieldName,fieldMessage));
+        super((new ApiError(fieldName,fieldMessage)).toString());
+        this.apiErrors = new ArrayList<>();
+        this.apiErrors.add(new ApiError(fieldName,fieldMessage));
     }
 
     /*
@@ -41,6 +49,8 @@ public class ApiValidationException extends ApplicationException {
     */
     public ApiValidationException(HttpServletRequest httpServletRequest, ApiValidationException e) {
         super(httpServletRequest, e);
+        this.apiErrors = e.getApiErrors();
+        this.status = e.getStatus();
     }
 
 }

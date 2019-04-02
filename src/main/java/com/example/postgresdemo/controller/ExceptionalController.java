@@ -1,5 +1,6 @@
 package com.example.postgresdemo.controller;
 
+import com.example.postgresdemo.exception.ApiValidationException;
 import com.example.postgresdemo.exception.ApplicationException;
 import com.example.postgresdemo.service.ExceptionalService;
 import org.slf4j.Logger;
@@ -33,7 +34,7 @@ public class ExceptionalController {
 
     // Throw the requested exception and don't handle it (beyond the controllerAdvice stuff).
     // Unless something has been explicitly thrown as an AppException it won't be handled nicely
-    @GetMapping("exception/clean/{exType}")
+    @GetMapping("clean/{exType}")
     public String doCleanThrow(@PathVariable String exType) {
 
         exceptionalService.thrower(exType);
@@ -51,6 +52,8 @@ public class ExceptionalController {
 
         try {
             exceptionalService.thrower(exType);
+        } catch (ApiValidationException avEx) {
+            throw  new ApiValidationException(httpServletRequest, avEx);
         } catch (Exception ex) {
             // LOG IT & the rethrow it such that it gets any given interactionId on the way out to caller
             logger.info("exception/", ex);

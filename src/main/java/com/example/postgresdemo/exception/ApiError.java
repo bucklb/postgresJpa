@@ -32,9 +32,16 @@ public class ApiError {
     }
 
     // Aim to get something helpful if someone wants a string (like in exception handling)
+//    @Override
+//    public String toString() {
+//        return "{\"" + this.getField() + "\" : \"" + this.getLocalizedErrorMessage() + "\"}";
+//    }
+
     @Override
     public String toString() {
-        return "{\"" + this.getField() + "\" : \"" + this.getLocalizedErrorMessage() + "\"}";
+        return "{\"field\": \"" + this.getField() + "\", " +
+                "\"localizedErrorMessage\": \"" + this.getLocalizedErrorMessage() + "\"}";
     }
+
 
 }
