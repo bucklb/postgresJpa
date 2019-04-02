@@ -31,6 +31,22 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
         return new ResponseEntity<>(apiErrors, ex.getHeaders(), ex.getStatus() );
     }
 
+    // If we haven't been gifted an error list then create a rather basic one as best we can
+    @ExceptionHandler(BirthCaseApiException.class)
+    public ResponseEntity<Object> processApplicationException(BirthCaseApiException ex) {
+
+//        // If we have a list then use it, else knock one together
+//        List<ApiError> apiErrors = ex.getApiErrors();
+//        if( apiErrors == null ) {
+//            apiErrors = new ArrayList<>();
+//            apiErrors.add(new ApiError(UNEXPECTED_ERROR, ex.getMessage()));
+//        }
+
+        return new ResponseEntity<>(ex.getDescription(), ex.getHeaders(), ex.getStatus() );
+    }
+
+
+
 //    @ExceptionHandler(ApiValidationException.class)
 //    public ResponseEntity<Object> processApiValidationException(ApiValidationException ex) {
 //        return new ResponseEntity<>(ex.getApiErrors(), ex.getHeaders(), ex.getStatus());

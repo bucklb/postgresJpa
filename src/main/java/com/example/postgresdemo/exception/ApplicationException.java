@@ -27,52 +27,55 @@ public class ApplicationException extends RuntimeException {
     public String getInteractionId() { return interactionId; }
     private String interactionId;
 
+    // May be a call for description ...
+    public String getDescription() { return description; }
+    private String description;
+
+
     // =============================================== CONSTRUCTORS =================================================
 
+
     /*
-        Allow id to be passed in explicitly, though need to think if likely to be really needed.
-        Ought to only happen as (last) re-throw of an exception.
+        "super" constructors.  Other constructors will call them. If passed throwable, check it for useful bits
      */
-    public ApplicationException(String interactionId, Throwable e) {
+    private ApplicationException(HttpServletRequest httpServletRequest, String interactionId, Throwable e) {
         super(e.getMessage(), e);
-        this.interactionId = interactionId;
-        if( e instanceof  ApplicationException ){
-            populateFromApplicationException( (ApplicationException)e);
-        }
+        decorate( httpServletRequest, interactionId);
+        populateFromApplicationException( e );
     }
-    public ApplicationException(String interactionId, String errMsg) {
+    private ApplicationException(HttpServletRequest httpServletRequest, String interactionId, String errMsg) {
         super(errMsg);
-        this.interactionId = interactionId;
+        decorate( httpServletRequest, interactionId);
     }
 
     /*
-        We will look to glean the interaction id from headers (if any)
-        Ought to only happen as (last) re-throw of an exception.
+        Allow id to be passed in explicitly.
+     */
+    public ApplicationException(String interactionId, Throwable e) {
+        this(null, interactionId, e);
+    }
+    public ApplicationException(String interactionId, String errMsg) {
+        this(null, interactionId, errMsg);
+    }
+
+    /*
+        Allow request & its headers (so can check them for stuff)
      */
     public ApplicationException(HttpServletRequest httpServletRequest, Throwable e) {
-        super(e.getMessage(), e);
-        setInteractionIdFromHeader(httpServletRequest);
-        if( e instanceof  ApplicationException ){
-            populateFromApplicationException( (ApplicationException)e);
-        }
+        this( httpServletRequest, null, e);
     }
     public ApplicationException(HttpServletRequest httpServletRequest, String errMsg) {
-        super(errMsg);
-        setInteractionIdFromHeader(httpServletRequest);
+        this( httpServletRequest, null, errMsg);
     }
 
     /*
         May not always be an interaction id (or headers) so don't insist on it
     */
     public ApplicationException(String errMsg) {
-        super(errMsg);
+        this(null, null, errMsg);
     }
-
     public ApplicationException(Throwable e) {
-        super(e.getMessage(), e);
-        if( e instanceof  ApplicationException ){
-            populateFromApplicationException( (ApplicationException)e);
-        }
+        this(null, null, e);
     }
 
     /*
@@ -89,12 +92,54 @@ public class ApplicationException extends RuntimeException {
         this.apiErrors.add(apiError);
     }
 
+    // TODO : is system happy that a null throwable might get passed?
+    protected ApplicationException(String desc, Throwable e, HttpStatus httpStatus) {
+        super( desc, e );
+        this.description = desc;
+        this.status = httpStatus;
+    }
 
 
     // ================================================================================================================
 
     /*
-    Outcome of exception will be a response that needs header(s).  Centralise the production
+        If we have decorations for the exception, glean and record them
+     */
+    private void decorate(HttpServletRequest httpServletRequest, String interactionId) {
+        // Populate interaction id
+        if ( interactionId != null ) {
+            this.interactionId = interactionId;
+        } else {
+            this.interactionId = getInteractionIdFromRequest(httpServletRequest);
+        }
+    }
+
+    /*
+        If we don't get given an interaction id then look at grabbing from the Request, if we get one handed in
+     */
+    private String getInteractionIdFromRequest(HttpServletRequest httpServletRequest) {
+        String id = null;
+        if( httpServletRequest != null ){
+            // We will happily accept a null response if there's nothing real to record
+            id = httpServletRequest.getHeader(INTERACTION_ID);
+        }
+        return id;
+    }
+
+    /*
+        If we're to be based on an exception passed in, then get the good stuff from it
+     */
+    private void populateFromApplicationException(Throwable e) {
+        // If it SHOULD have apiErrors, then cast it so we get the methods and the data
+        if( e instanceof  ApplicationException ){
+            ApplicationException aEx = (ApplicationException)e;
+            apiErrors = aEx.getApiErrors();
+            status = aEx.getStatus();
+        }
+    }
+
+    /*
+        Outcome of exception will be a response that needs header(s).  Generate here, rather than in handler
      */
     public HttpHeaders getHeaders() {
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -104,24 +149,4 @@ public class ApplicationException extends RuntimeException {
         }
         return httpHeaders;
     }
-
-    /*
-        If we don't get given an interaction id then look at grabbing from the ServletRequest, if we get one handed in
-     */
-    private void setInteractionIdFromHeader(HttpServletRequest httpServletRequest) {
-        if( httpServletRequest != null ){
-            // We will happily accept a null response if there's nothing real to record
-            String id = httpServletRequest.getHeader(INTERACTION_ID);
-            this.interactionId = id;
-        }
-    }
-
-    /*
-        If we're to be based on an exception passed in, then get the good stuff from it
-     */
-    private void populateFromApplicationException(ApplicationException e) {
-        apiErrors = e.getApiErrors();
-        status = e.getStatus();
-    }
-
 }
