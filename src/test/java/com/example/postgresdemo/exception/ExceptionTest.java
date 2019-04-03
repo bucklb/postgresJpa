@@ -1,4 +1,4 @@
-package com.example.postgresdemo.Validator;
+package com.example.postgresdemo.exception;
 
 
 import com.example.postgresdemo.controller.BirthController;
