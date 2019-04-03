@@ -57,7 +57,8 @@ public class ExceptionalController {
         } catch (Exception ex) {
             // LOG IT & the rethrow it such that it gets any given interactionId on the way out to caller
             logger.info("exception/", ex);
-            throw new ApplicationException(httpServletRequest, ex);
+//            throw new ApplicationException(httpServletRequest, ex);
+            throw new ApplicationException(ex, httpServletRequest);
         }
 
         // Should never hit this
@@ -78,7 +79,8 @@ public class ExceptionalController {
         } catch (Exception ex) {
             // LOG IT & the rethrow it such that it gets any given interactionId on the way out to caller
             logger.info("exception/", ex);
-            throw new ApplicationException(httpServletRequest, ex);
+//            throw new ApplicationException(httpServletRequest, ex);
+            throw new ApplicationException(ex, httpServletRequest);
         }
 
         // Should never hit this
@@ -95,7 +97,8 @@ public class ExceptionalController {
         } catch (Exception ex) {
             // LOG IT & the rethrow it such that it gets any given interactionId on the way out to caller
             logger.info("exception/", ex);
-            throw new ApplicationException(httpServletRequest, ex);
+//            throw new ApplicationException(httpServletRequest, ex);
+            throw new ApplicationException(ex, httpServletRequest);
         }
 
         // Should never hit this

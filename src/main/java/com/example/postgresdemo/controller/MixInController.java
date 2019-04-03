@@ -41,7 +41,8 @@ public class MixInController {
                     true, true);
         } catch (Exception e) {
             // rethrow to pick up any interactionId
-            throw new ApplicationException(httpServletRequest, e);
+//            throw new ApplicationException(httpServletRequest, e);
+            throw new ApplicationException(e, httpServletRequest);
         }
 
         return ansa;

@@ -20,14 +20,14 @@ public class MockRequest {
 
         ApiValidationException avEx = new ApiValidationException("key","value");
         System.out.println(avEx.getMessage());
-        ApplicationException aEx = new ApplicationException(mockHttpServletRequest, avEx);
+//        ApplicationException aEx = new ApplicationException(mockHttpServletRequest, avEx);
+        ApplicationException aEx = new ApplicationException(avEx, mockHttpServletRequest);
         System.out.println(aEx.getMessage());
 
-        aEx = new ApplicationException(mockHttpServletRequest,aEx);
-        aEx = new ApplicationException(mockHttpServletRequest,aEx);
-        aEx = new ApplicationException(mockHttpServletRequest,aEx);
-        aEx = new ApplicationException(mockHttpServletRequest,aEx);
-        aEx = new ApplicationException(mockHttpServletRequest,aEx);
+        aEx = new ApplicationException(aEx, mockHttpServletRequest);
+        aEx = new ApplicationException(aEx, mockHttpServletRequest);
+        aEx = new ApplicationException(aEx, mockHttpServletRequest);
+        aEx = new ApplicationException(aEx, mockHttpServletRequest);
 
         String s = aEx.getInteractionId();
 

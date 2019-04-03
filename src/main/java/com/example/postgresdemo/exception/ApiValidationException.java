@@ -9,48 +9,62 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * At the moment there are things that we can't expect codegen/Spring to hanld for us, but we want treated as bad request
- * - no birt details given
- * - date strings that are not dates
- * - dates in the future (birth date & reg date)
+/*
+    In validation can be multiple issues raised, so try and raise many at once, not one a time
  */
 public class ApiValidationException extends ApplicationException {
 
+    // Default STATUS
+    private static final HttpStatus STATUS = HttpStatus.BAD_REQUEST;
 
-    @Override   // if not overridden then will be raised with 500
-    public HttpStatus getStatus() { return status; }
-    private HttpStatus status = HttpStatus.BAD_REQUEST;
-
+    // Testing is easier if we can get a list of individual issuettes. Allows more specified handling, potentially
     public List<ApiError> getApiErrors() { return apiErrors; }
     private List<ApiError> apiErrors;
 
     /*
-        Error list should be enough, without any extra explanation
+        PRIVATE constructors. Parameters back to front to avoid clashes
      */
-    public ApiValidationException(List<ApiError> apiErrors) {
-//        super(apiErrors);   // is this good enough or do we need the HttpInputMessage too??
-        super(apiErrors.toString());   // is this good enough or do we need the HttpInputMessage too??
+    private ApiValidationException(HttpStatus httpStatus, List<ApiError> apiErrors) {
+        super(apiErrors.toString(), httpStatus);
+        // record the apiErrors in case anyone wants them
         this.apiErrors = apiErrors;
     }
-
-    /*
-        Allow caller to be spared the pain of creating an arrayList for a single error/message
-     */
-    public ApiValidationException(String fieldName, String fieldMessage) {
-//        super(new ApiError(fieldName,fieldMessage));
-        super((new ApiError(fieldName,fieldMessage)).toString());
+    private ApiValidationException(HttpStatus httpStatus, String fieldName, String fieldMessage) {
+        super((new ApiError(fieldName,fieldMessage)).toString(), STATUS);
+        // record as apiErrors in case anyone wants it/them
         this.apiErrors = new ArrayList<>();
         this.apiErrors.add(new ApiError(fieldName,fieldMessage));
     }
 
     /*
-        Expect this to be called from a controller and just add the interactionId for further transmission
+        "Default" constructors
+     */
+    public ApiValidationException(List<ApiError> apiErrors) {
+        this(STATUS, apiErrors);
+    }
+    public ApiValidationException(String fieldName, String fieldMessage) {
+        this(STATUS, fieldName, fieldMessage);
+    }
+
+    /*
+        Not sure this will ever be needed (we plan the final throw to be via an AppEx proper)
     */
     public ApiValidationException(HttpServletRequest httpServletRequest, ApiValidationException e) {
-        super(httpServletRequest, e);
+        super(e,httpServletRequest);
+        // Other constructors go via private super constructors, that retain apiErrors.  We don't so retain here
         this.apiErrors = e.getApiErrors();
-        this.status = e.getStatus();
+    }
+
+
+    /*
+        To allow super stuff from JwtValidationException (amd its inheritors)
+        Might make sense to allow outside world to use it?? Depends if we want caller to tell us what status to use!
+     */
+    protected ApiValidationException(List<ApiError> apiErrors, HttpStatus httpStatus) {
+        this(httpStatus, apiErrors);
+    }
+    protected ApiValidationException(String fieldName, String fieldMessage, HttpStatus httpStatus) {
+        this(httpStatus, fieldName, fieldMessage);
     }
 
 }

@@ -15,98 +15,102 @@ public class ApplicationException extends RuntimeException {
 
     public static final String INTERACTION_ID = "interactionId";
 
-    // If we rely on apiErrors across the board ....
-//    public List<ApiError> getApiErrors() { return apiErrors; }
-//    private List<ApiError> apiErrors;
-
-    // Will generally want this to be overridden as we progress through the profile.  We can't insist that anyone uses it anyway
+    // If we are raising exceptions they probably need a status for when they get back to the controller
     public HttpStatus getStatus() { return status; }
     private HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 
-    // Not clear if the need for this is obviated if we use Sleuth!!
+    // NOTE : this could become the traceId from Sleuth
     public String getInteractionId() { return interactionId; }
     private String interactionId;
 
-    // May be a call for description ...
-    public String getDescription() { return description; }
-    private String description;
-
-
-    // =============================================== CONSTRUCTORS =================================================
-
-
     /*
-        "super" constructors.  Other constructors will call them. If passed throwable, check it for useful bits
+    // ================================= PRIVATE "SUPER" CONSTRUCTORS =================================================
+        "super" constructors.  Only available within this class
      */
-    private ApplicationException(HttpServletRequest httpServletRequest, String interactionId, Throwable e) {
-        super(e.getMessage(), e);
-        decorate( httpServletRequest, interactionId);
-        populateFromApplicationException( e );
-    }
-    private ApplicationException(HttpServletRequest httpServletRequest, String interactionId, String errMsg) {
-        super(errMsg);
-        decorate( httpServletRequest, interactionId);
+    private ApplicationException(String msg, Throwable e,
+                                 HttpStatus httpStatus, HttpServletRequest httpServletRequest, String interactionId ) {
+        super(msg, e);
+
+        record(e, httpStatus, httpServletRequest, interactionId);
     }
 
+    private ApplicationException(String msg,
+                                 HttpStatus httpStatus, HttpServletRequest httpServletRequest, String interactionId ) {
+        super(msg);
+
+        record(null, httpStatus, httpServletRequest, interactionId);
+    }
+
+    private ApplicationException(            Throwable e,
+                                 HttpStatus httpStatus,HttpServletRequest httpServletRequest, String interactionId ) {
+        super(e.getMessage(), e);  // ?? Would it be enough to do super(e)
+
+        record(e, httpStatus, httpServletRequest, interactionId);
+    }
+
+
     /*
-        Allow id to be passed in explicitly.
+        basic constructors.  So pass lots of nulls "extras"
      */
-    public ApplicationException(String interactionId, Throwable e) {
-        this(null, interactionId, e);
+    public ApplicationException(String msg, Throwable e) {
+        this(msg, e, null, null, null);
     }
-    public ApplicationException(String interactionId, String errMsg) {
-        this(null, interactionId, errMsg);
+    public ApplicationException(String msg) {
+        this(msg,    null, null, null);    // throwable  free super constructor
+    }
+    public ApplicationException(            Throwable e) {
+        this(     e, null, null, null);      // errMessage free super constructor
     }
 
     /*
-        Allow request & its headers (so can check them for stuff)
+        often we will want to pass a status
      */
-    public ApplicationException(HttpServletRequest httpServletRequest, Throwable e) {
-        this( httpServletRequest, null, e);
+    public ApplicationException(String msg, Throwable e, HttpStatus httpStatus) {
+        this(msg, e, httpStatus, null, null);
     }
-    public ApplicationException(HttpServletRequest httpServletRequest, String errMsg) {
-        this( httpServletRequest, null, errMsg);
+    public ApplicationException(String msg,              HttpStatus httpStatus) {
+        this(msg,    httpStatus, null, null);  // throwable  free super constructor
     }
-
-    /*
-        May not always be an interaction id (or headers) so don't insist on it
-    */
-    public ApplicationException(String errMsg) {
-        this(null, null, errMsg);
-    }
-    public ApplicationException(Throwable e) {
-        this(null, null, e);
+    public ApplicationException(            Throwable e, HttpStatus httpStatus) {
+        this(     e, httpStatus, null, null);    // errMessage free super constructor
     }
 
     /*
-        Allow only other exceptions access to these constructors.  General public don't get access
+        if we are just rethrowing to decorate won't need/want status, probs don't want a message either
+        !! ALL of these call the "MESSAGE FREE super constructor !!
      */
-//    protected ApplicationException(List<ApiError> apiErrors) {
-//        super( apiErrors.toString() );
-//        this.apiErrors = apiErrors;
-//    }
-    // Already have a two string constructor, otherwise would use field, message
-//    protected ApplicationException(ApiError apiError) {
-//        super( apiError.toString() );
-//        this.apiErrors = new ArrayList<>();
-//        this.apiErrors.add(apiError);
-//    }
+    public ApplicationException(Throwable e,              HttpServletRequest httpServletRequest) {
+        this(e, null,          httpServletRequest, null);
+    }
+    public ApplicationException(ApplicationException e,   HttpServletRequest httpServletRequest) {
+        this(e, e.getStatus(), httpServletRequest, null);
+    }
 
-    // TODO : is system happy that a null throwable might get passed?
-    protected ApplicationException(String desc, Throwable e, HttpStatus httpStatus) {
-        super( desc, e );
-        this.description = desc;
-        this.status = httpStatus;
+    public ApplicationException(Throwable e,              String interactionId) {
+        this(e,          null, null, interactionId);
+    }
+    public ApplicationException(ApplicationException e,   String interactionId) {
+        this(e, e.getStatus(), null, interactionId);
     }
 
 
+    /*
     // ================================================================================================================
-
-    /*
-        If we have decorations for the exception, glean and record them
+        record anything useful that came in ...
      */
-    private void decorate(HttpServletRequest httpServletRequest, String interactionId) {
-        // Populate interaction id
+    private void record(Throwable e, HttpStatus httpStatus, HttpServletRequest httpServletRequest, String interactionId ) {
+        // Status might be given explicitly.  Otherwise if we have a suitable "cause" we can glean a status from it
+        if ( httpStatus != null ) {
+            this.status = httpStatus;
+        } else {
+            // Can we "inherit" status from a (non-null) cause
+            if ( e != null ) {
+                if (e instanceof ApplicationException ) {
+                    this.status = ((ApplicationException) e).getStatus();
+                }
+            }
+        }
+        // Would be good to have an interactiond id, provided explicitly or via the request's headers
         if ( interactionId != null ) {
             this.interactionId = interactionId;
         } else {
@@ -126,17 +130,6 @@ public class ApplicationException extends RuntimeException {
         return id;
     }
 
-    /*
-        If we're to be based on an exception passed in, then get the good stuff from it
-     */
-    private void populateFromApplicationException(Throwable e) {
-        // If it SHOULD have apiErrors, then cast it so we get the methods and the data
-        if( e instanceof  ApplicationException ){
-            ApplicationException aEx = (ApplicationException)e;
-//            apiErrors = aEx.getApiErrors();
-            status = aEx.getStatus();
-        }
-    }
 
     /*
         Outcome of exception will be a response that needs header(s).  Generate here, rather than in handler

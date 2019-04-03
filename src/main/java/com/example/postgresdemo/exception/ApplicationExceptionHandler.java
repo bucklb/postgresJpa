@@ -18,11 +18,10 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity<Object> processApplicationException(ApplicationException ex) {
 
-        System.out.println(ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), ex.getHeaders(), ex.getStatus() );
     }
 
-    // If we haven't been gifted an error list then create a rather basic one as best we can
+    // If needed, this returns the validation bits in an array
     @ExceptionHandler(ApiValidationException.class)
     public ResponseEntity<Object> processApplicationException(ApiValidationException ex) {
 
@@ -33,34 +32,14 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
             apiErrors.add(new ApiError(UNEXPECTED_ERROR + ">>>>>>>", ex.getMessage()));
         }
 
-
-        System.out.println(ex.getClass().getSimpleName());
-        System.out.println(ex.getMessage());
-
         return new ResponseEntity<>(apiErrors, ex.getHeaders(), ex.getStatus() );
     }
 
-    // If we haven't been gifted an error list then create a rather basic one as best we can
+    // REMARKABLY similar to the default handler. Does it need to be different
     @ExceptionHandler(BirthCaseApiException.class)
     public ResponseEntity<Object> processApplicationException(BirthCaseApiException ex) {
 
-//        // If we have a list then use it, else knock one together
-//        List<ApiError> apiErrors = ex.getApiErrors();
-//        if( apiErrors == null ) {
-//            apiErrors = new ArrayList<>();
-//            apiErrors.add(new ApiError(UNEXPECTED_ERROR, ex.getMessage()));
-//        }
-
-        return new ResponseEntity<>(ex.getDescription(), ex.getHeaders(), ex.getStatus() );
+        return new ResponseEntity<>(ex.getMessage(), ex.getHeaders(), ex.getStatus() );
     }
-
-
-
-//    @ExceptionHandler(ApiValidationException.class)
-//    public ResponseEntity<Object> processApiValidationException(ApiValidationException ex) {
-//        return new ResponseEntity<>(ex.getApiErrors(), ex.getHeaders(), ex.getStatus());
-//    }
-
-
 
 }

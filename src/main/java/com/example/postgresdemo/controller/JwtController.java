@@ -53,7 +53,8 @@ public class JwtController {
             jwtHelper.checkRequestAuthorisation(httpServletRequest);
         } catch (Exception e) {
             // rethrow to pick up any interactionId
-            throw new ApplicationException(httpServletRequest, e);
+//            throw new ApplicationException(httpServletRequest, e);
+            throw new ApplicationException(e, httpServletRequest);
         }
 
     }

@@ -42,7 +42,8 @@ public class BBException extends ApplicationException {
         Expect this to be called from a controller and just add the interactionId for further transmission
     */
     public BBException(HttpServletRequest httpServletRequest, BBException e) {
-        super(httpServletRequest, e);
+//        super(httpServletRequest, e);
+        super(e, httpServletRequest);
         this.apiErrors = e.getApiErrors();
     }
 

@@ -24,13 +24,13 @@ public class AppExceptionTest {
 
         BirthCaseApiException bcEx=new BirthCaseApiException(HttpStatus.ALREADY_REPORTED,"already reported");
         Assert.assertEquals(HttpStatus.ALREADY_REPORTED, bcEx.getStatus());
-        Assert.assertEquals("already reported", bcEx.getDescription());
+        Assert.assertEquals("already reported", bcEx.getMessage());
 
 
-        ApplicationException aEx = new ApplicationException("id",bcEx);
+        ApplicationException aEx = new ApplicationException(bcEx,"addedInteractionId");
         Assert.assertEquals(HttpStatus.ALREADY_REPORTED, aEx.getStatus());
         Assert.assertEquals("already reported", aEx.getMessage());
-        Assert.assertEquals("already reported", aEx.getDescription());
+//        Assert.assertEquals("already reported", aEx.getDescription());
 
 
     }
